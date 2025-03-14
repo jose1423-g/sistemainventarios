@@ -122,6 +122,22 @@
                 </li>
                 <li>
                     <ResponsiveNavLink
+                            :href="route('area')"
+                            :active="route().current('area')"
+                        >
+                            Area
+                    </ResponsiveNavLink>
+                </li>
+                <li>
+                    <ResponsiveNavLink
+                            :href="route('personal')"
+                            :active="route().current('personal')"
+                        >
+                            Personal
+                    </ResponsiveNavLink>
+                </li>
+                <li>
+                    <ResponsiveNavLink
                             :href="route('usuarios')"
                             :active="route().current('usuarios')"
                         >

@@ -118,7 +118,7 @@ function Search () {
                         type="hidden"
                         v-model="form.id"
                     />                    
-                    <div>
+                    <div class="relative">
                         <InputLabel for="NoOrden" value="No° orden de compra"/>
                         <TextInput
                             id="NoOrden"
@@ -173,7 +173,7 @@ function Search () {
                             v-model="form.Precio"
                         />
                     </div>
-                    <div>
+                    <div class="relative">
                         <InputLabel for="IdPartida" value="No° partida"/>
                         <TextInput
                             id="IdPartida"

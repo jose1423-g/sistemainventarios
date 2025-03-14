@@ -158,7 +158,7 @@ function Search () {
                             v-model="form.FechaEntrada"
                         />
                     </div>
-                    <div>
+                    <div class="relative">
                         <InputLabel for="AreaSolicitante" value="Area solicitante"/>
                         <TextInput
                             id="AreaSolicitante"
