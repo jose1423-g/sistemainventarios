@@ -3,13 +3,16 @@
     import Dropdown from '@/Components/Dropdown.vue';
     import DropdownLink from '@/Components/DropdownLink.vue';
     import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-    // import 'primeicons/primeicons.css'
     import { ref } from 'vue';
     
+    const iconbtn = ref('<i class="text-black pi pi-bars !text-2xl"></i>')
     const addclass = ref('-translate-x-full');
+    const isopen = ref(false);
 
     const toggleAside = () => {
+        isopen.value = isopen.value ? false : true;
         addclass.value  = addclass.value === 'transform-none' ? '-translate-x-full' : 'transform-none';
+        iconbtn.value = iconbtn.value === '<i class="text-black pi pi-times !text-2xl"></i>' ? '<i class="text-black pi pi-bars !text-2xl"></i>': '<i class="text-black pi pi-times !text-2xl"></i>';
     }
 
 </script>
@@ -19,7 +22,7 @@
         <div class="flex items-center justify-between px-5 py-3 h-[5rem]">
             <div class="flex">
                 <button type="button" class="block p-0 mr-6 bg-white sm:hidden" @click="toggleAside">
-                    <i class="text-black pi pi-bars !text-2xl"></i>
+                    <div v-html="iconbtn"></div>
                 </button>
                 <ApplicationLogo class="block w-auto text-gray-800 fill-current h-9"/>
             </div>
@@ -66,8 +69,15 @@
                 </Dropdown>
             </div>
         </div>
-    </nav>    
-    <aside :class="addclass" class="fixed top-0 sm:translate-x-0 left-0 z-40 w-64 h-screen border-r bg-white border-r-gray-200 pt-[5rem] py-4 px-3 transform transition-transform duration-300">
+    </nav>   
+    <!-- Overlay -->
+    <div        
+        v-if="isopen"
+        @click="toggleAside"
+        class="fixed inset-0 z-40 transition-opacity bg-gray-900 opacity-50"
+    >
+    </div> 
+    <aside :class="addclass" class="fixed top-0 sm:translate-x-0 left-0 z-40 w-64 h-screen border-r bg-white border-r-gray-200 pt-[5rem] py-4 px-2 transform transition-transform duration-300">
         <div class="h-full py-3 overflow-y-auto">
             <ul class="flex flex-col gap-4">
                 <li>
@@ -79,20 +89,44 @@
                     </ResponsiveNavLink>
                 </li>
                 <li>
-                    <!-- <ResponsiveNavLink
-                            :href="route('CheckInvoices')"
-                            :active="route().current('CheckInvoices')"
+                    <ResponsiveNavLink
+                            :href="route('productos')"
+                            :active="route().current('productos')"
                         >
-                            Consulta tus facturas
-                    </ResponsiveNavLink> -->
+                            Productos
+                    </ResponsiveNavLink>
                 </li>
                 <li>
-                    <!-- <ResponsiveNavLink
-                            :href="route('UploadKeyAndCer')"
-                            :active="route().current('UploadKeyAndCer')"
+                    <ResponsiveNavLink
+                            :href="route('entrada')"
+                            :active="route().current('entrada')"
                         >
-                            Carga tu certificado y key
-                    </ResponsiveNavLink> -->
+                            Entrada
+                    </ResponsiveNavLink>
+                </li>
+                <li>
+                    <ResponsiveNavLink
+                            :href="route('salida')"
+                            :active="route().current('salida')"
+                        >
+                            Salida
+                    </ResponsiveNavLink>
+                </li>
+                <li>
+                    <ResponsiveNavLink
+                            :href="route('partidapresupuestal')"
+                            :active="route().current('partidapresupuestal')"
+                        >
+                            Partida presupuestal
+                    </ResponsiveNavLink>
+                </li>
+                <li>
+                    <ResponsiveNavLink
+                            :href="route('usuarios')"
+                            :active="route().current('usuarios')"
+                        >
+                            Usuarios
+                    </ResponsiveNavLink>
                 </li>
             </ul>
         </div>                
