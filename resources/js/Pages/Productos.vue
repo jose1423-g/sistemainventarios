@@ -96,7 +96,7 @@ function Search () {
                 </PrimaryButton>
             </div>
             <DataTable :value="products" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
-                <Column field="Code" header="No° Entrada"></Column>
+                <Column field="Code" header="No° orden de compra"></Column>
                 <Column field="Name" header="Nombre"></Column>
                 <Column field="Name" header="No° Partida"></Column>
                 <Column header="Acciones">
