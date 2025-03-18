@@ -22,7 +22,12 @@ createInertiaApp({
         return createApp({ render: () => h(App, props) })
             .use(PrimeVue, {
                 theme: {
-                    preset: Aura
+                    preset: Aura,
+                    options: {
+                        prefix: 'p',
+                        darkModeSelector: 'system',
+                        cssLayer: false
+                    }
                 }
             })
             .use(plugin)
