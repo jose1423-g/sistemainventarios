@@ -4,9 +4,8 @@ import AuthenLayout from '@/Layouts/AuthenLayout.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
-import Select from '@/Components/Select.vue';
+import Modal from '@/Components/Modal.vue';
 import SearchResult from '@/Components/SearchResult.vue';
-import TextArea from '@/Components/TextArea.vue'
 import { Head, useForm } from '@inertiajs/vue3';
 import {ref, onMounted} from 'vue';
 
@@ -20,6 +19,7 @@ const products = ref([]);
 const visibleRight = ref(false);
 const showspinner = ref(true);
 const btndisabled = ref(false);
+const showmodal = ref(false);
 
 const searchText = ref();
 
@@ -37,6 +37,10 @@ const data = [
 const data2 = ref([]);
 
 const size = ref({ label: 'Small', value: 'small' });
+
+const closeModal = () => {
+    showmodal.value = false;
+}
 
 onMounted(() => {    
     products.value = data;    
@@ -87,7 +91,7 @@ function Search () {
             <h3 class="mb-5 text-2xl font-bold text-gray-900">Salidas</h3>
             
             <div class="flex justify-end mb-5">
-                <PrimaryButton type="button" @click="visibleRight = true">
+                <PrimaryButton type="button" @click="showmodal = true">
                     <div class="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="mr-2 size-5">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z" clip-rule="evenodd" />
@@ -112,6 +116,29 @@ function Search () {
                 </Column>
             </DataTable>
         </div>
+
+        <Modal :show="showmodal" @close="closeModal">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-4 border-b border-gray-200 rounded-t md:p-5">
+                <h3 class="text-xl font-semibold text-gray-900">
+                    Salida
+                </h3>
+                <button type="button" class="inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:bg-gray-200 hover:text-gray-900 ms-auto">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Modal body -->
+            <div class="p-4 space-y-4 md:p-5">
+            </div>
+            
+            <!-- Modal footer -->
+            <div class="flex items-center justify-end p-4 border-t border-gray-200 rounded-b md:p-5">
+                
+            </div>                         
+        </Modal>
         
         <Drawer v-model:visible="visibleRight" header="Salida" position="right" class="!w-[25rem]">
             <form @submit.prevent="submit">

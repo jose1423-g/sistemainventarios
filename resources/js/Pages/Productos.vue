@@ -48,7 +48,8 @@ const form = useForm({
     Totalarticulos: '', 
     IdPartida: '',
     Unidad: '',
-    Precio: '',    
+    Precio: '',   
+    img: '',
 });
 
 const submit = async () => {
@@ -111,7 +112,7 @@ function Search () {
         </div>
         
         <Drawer v-model:visible="visibleRight" header="Entrada de producto" position="right" class="!w-[25rem]">
-            <form @submit.prevent="submit">
+            <form @submit.prevent="submit" enctype="multipart/form-data">
                 <div class="grid grid-cols-1 gap-4">
                     <TextInput                         
                         id="id"
@@ -169,6 +170,15 @@ function Search () {
                         <TextInput
                             id="Precio"
                             type="text"
+                            class="w-full mt-1"
+                            v-model="form.Precio"
+                        />
+                    </div>
+                    <div>
+                        <InputLabel for="img" value="Imagen"/>
+                        <TextInput
+                            id="img"
+                            type="file"
                             class="w-full mt-1"
                             v-model="form.Precio"
                         />
