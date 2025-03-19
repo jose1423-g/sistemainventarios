@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PartidaPresupuestalController;
+use App\Http\Controllers\SearchController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -38,9 +40,7 @@ Route::get('/personal', function () {
     return Inertia::render('Personal');
 })->middleware(['auth', 'verified'])->name('personal');
 
-Route::get('/partidapresupuestal', function () {
-    return Inertia::render('PartidaPresupuestal');
-})->middleware(['auth', 'verified'])->name('partidapresupuestal');
+Route::get('/partidapresupuestal', [PartidaPresupuestalController::class, 'Showview'])->name('partidapresupuestal');
 
 Route::get('/usuarios', function () {
     return Inertia::render('Usuarios');
@@ -50,6 +50,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+
+    Route::post('/storepartida', [PartidaPresupuestalController::class, 'Store'])->name('store.partida');
+
+
 });
 
 require __DIR__.'/auth.php';
