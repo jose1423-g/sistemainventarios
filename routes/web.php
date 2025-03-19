@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PartidaPresupuestalController;
+use App\Http\Controllers\AreaController;
 use App\Http\Controllers\SearchController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -32,9 +33,7 @@ Route::get('/salida', function () {
     return Inertia::render('Salida');
 })->middleware(['auth', 'verified'])->name('salida');
 
-Route::get('/area', function () {
-    return Inertia::render('Area');
-})->middleware(['auth', 'verified'])->name('area');
+Route::get('/area', [AreaController::class, 'Showview'])->name('area');
 
 Route::get('/personal', function () {
     return Inertia::render('Personal');
@@ -53,6 +52,8 @@ Route::middleware('auth')->group(function () {
 
 
     Route::post('/storepartida', [PartidaPresupuestalController::class, 'Store'])->name('store.partida');
+
+    Route::post('/storearea', [AreaController::class, 'Store'])->name('store.area');
 
 
 });

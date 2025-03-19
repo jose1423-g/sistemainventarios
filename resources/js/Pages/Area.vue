@@ -5,57 +5,72 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Select from '@/Components/Select.vue';
-import SearchResult from '@/Components/SearchResult.vue';
-import TextArea from '@/Components/TextArea.vue'
-import { Head, useForm } from '@inertiajs/vue3';
-import {ref, onMounted} from 'vue';
+import FieldError from '@/Components/FieldError.vue';
+import { Head, useForm, router } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Drawer from 'primevue/drawer';
 import axios from 'axios';
-
-const products = ref([]);
+import Toast from 'primevue/toast';
+import { useToast } from "primevue/usetoast";
+const toast = useToast();
 
 const visibleRight = ref(false);
 const showspinner = ref(true);
 const btndisabled = ref(false);
-
-const searchText = ref();
-
-const data = [
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': '123456', 'Name': 'Juan',	'Category': 'Accessories', 'Quantity' : '25'},
-];
+const msgerrors = ref([]);
 
 const size = ref({ label: 'Small', value: 'small' });
 
-onMounted(() => {    
-    products.value = data;    
+defineProps({
+    Areas: {
+        type: Array,
+        default: []
+    }
 });
+
+const EsActivo = [ {'id': 0, 'descripcion': 'Desactivada'}, {'id': 1, 'descripcion': 'Activa'},]
 
 const form = useForm({ 
     id: '',
-    Area: '',
-    Activa: '',
+    area: '',
+    activa: 1,
 });
 
 const submit = async () => {
     showspinner.value = false;
-    btndisabled.value = true;
-    // let resp = await axios.post(route(''), form);
-    // console.log(resp);
+    btndisabled.value = true; 
+    try {
+        let resp = await axios.post(route('store.area'), form);
+        if (resp.data.result == 1) {
+            showSuccess(resp.data.msg)
+            showspinner.value = true;
+            btndisabled.value = false;
+            form.reset('id', 'area');
+            router.reload({ only: ['Areas'] });
+        } else {
+            showSuccess(msg)
+            showspinner.value = true;
+            btndisabled.value = false;
+        }        
+    } catch (error) {
+        showspinner.value = true;
+        btndisabled.value = false;
+        msgerrors.value = error.response.data.errors;
+    }       
 }
+
+const showSuccess = (msg) => {
+    toast.add({ severity: 'success', summary: 'Success', detail: msg, life: 3000 });
+};
 
 const editProduct  = (holis) => {
     console.log(holis);
 }
+
+
 
 </script>
 
@@ -63,8 +78,10 @@ const editProduct  = (holis) => {
     <Head title="Partida presupuestal" />
 
 
-    <AuthenLayout>
-
+    <AuthenLayout> 
+        
+        
+        
         <div class="p-5 bg-white border border-gray-200 rounded-sm shadow-md">
             <h3 class="mb-5 text-2xl font-bold text-gray-900">Area</h3>
             
@@ -76,12 +93,12 @@ const editProduct  = (holis) => {
                         </svg>
                         <span>Agregar</span>
                     </div>
-                </PrimaryButton>
+                </PrimaryButton>                
             </div>
-            <DataTable :value="products" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
-                <Column field="Code" header="Area"></Column>
+            <DataTable :value="Areas" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+                <Column field="area" header="Area"></Column>
                 <Column field="Name" header="Personal del area"></Column>
-                <Column field="Name" header="Activa"></Column>
+                <Column field="activa" header="Activa"></Column>
                 <Column header="Acciones">
                     <template #body="rowdata">
                         <div class="flex gap-2">
@@ -93,6 +110,9 @@ const editProduct  = (holis) => {
             </DataTable>
         </div>
         
+        <!-- alerta -->
+        <Toast />
+        
         <Drawer v-model:visible="visibleRight" header="Area" position="right" class="!w-[25rem]">
             <form @submit.prevent="submit">
                 <div class="grid grid-cols-1 gap-4">
@@ -102,23 +122,24 @@ const editProduct  = (holis) => {
                         v-model="form.id"
                     />                    
                     <div>
-                        <InputLabel for="Area" value="Area"/>
+                        <InputLabel for="area" value="Area"/>
                         <TextInput
-                            id="Area"
+                            id="area"
                             type="text"
                             class="w-full mt-1"
-                            v-model="form.Area"
+                            v-model="form.area"
                         />
+                        <FieldError :message="msgerrors.area" />
                     </div>
                     <div>
-                        <InputLabel for="Activa" value="Activa"/>
+                        <InputLabel for="activa" value="Activa"/>
                         <Select
-                            id="Activa"                            
+                            id="activa"                            
                             class="w-full mt-1"
-                            v-model="form.Activa"
-                            :data="data = []"
-                            :label="''"
-                            :text="''"
+                            v-model="form.activa"
+                            :data="EsActivo"
+                            :label="'id'"
+                            :text="'descripcion'"
                         />
                     </div>
                 </div>                
