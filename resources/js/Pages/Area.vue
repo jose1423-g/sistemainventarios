@@ -52,7 +52,7 @@ const submit = async () => {
             form.reset('id', 'area');
             router.reload({ only: ['Areas'] });
         } else {
-            showSuccess(msg)
+            showError(resp.data.msg)
             showspinner.value = true;
             btndisabled.value = false;
         }        
@@ -67,12 +67,35 @@ const showSuccess = (msg) => {
     toast.add({ severity: 'success', summary: 'Success', detail: msg, life: 3000 });
 };
 
-const Edit = (data) => {
-    console.log(data);
+const showError = (msg) => {
+    toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 3000 });
+};
+
+const Edit = async (data) => {
+     
+    let resp = await axios.get(route('edit.area', data.id));
+    
+        if (resp.data.result == 0) {
+            showError(resp.data.msg);
+        } else {
+            visibleRight.value = true;
+            form.id = resp.data.id;
+            form.area = resp.data.area;
+            form.activa = resp.data.activa;
+        }
+    
 }
 
-const Delete  = (data) => {
-    console.log(data);
+const Delete  = async (data) => {
+    
+    let resp = await axios.delete(route('delete.area', data.id));    
+    
+        if (resp.data.result == 1) {
+            showSuccess(resp.data.msg)
+            router.reload({ only: ['Areas'] });
+        } else {
+            showError(resp.data.msg);            
+        }
 }
 
 
@@ -101,7 +124,20 @@ const Delete  = (data) => {
             <DataTable :value="Areas" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                 <Column field="area" header="Area"></Column>
                 <Column field="Name" header="Personal del area"></Column>
-                <Column field="activa" header="Activa"></Column>
+                <Column header="Activa">
+                    <template #body="rowdata">
+                        <template v-if="rowdata.data.activa == 1">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
+                            </svg>
+                        </template>
+                        <template v-else>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+                            </svg>
+                        </template>
+                    </template>
+                </Column>
                 <Column header="Acciones">
                     <template #body="rowdata">
                         <div class="flex gap-2">

@@ -42,9 +42,26 @@ class AreaController extends Controller
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
         }
         
+    }   
+    
+    
+    public function Edit ($id) {
+        try {
+            $data = Areas::find($id);
+            return $data;
+        } catch (\Throwable $th) {
+            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
+        }
         
+    }
 
-
-
-    }    
+    public function Delete ($id) {
+        try {            
+            Areas::destroy($id);
+            return response()->json(['result' => 1, 'msg' => 'Area Eliminada con exito']);
+        } catch (\Throwable $th) {
+            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
+        }
+        
+    }
 }
