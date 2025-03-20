@@ -48,4 +48,12 @@ class PartidaPresupuestalController extends Controller
     }
     }   
 
+    public function Edit ($id) {
+
+    }
+
+    public function Delete ($id) {
+        
+    }
+
 }

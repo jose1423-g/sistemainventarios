@@ -52,8 +52,13 @@ Route::middleware('auth')->group(function () {
 
 
     Route::post('/storepartida', [PartidaPresupuestalController::class, 'Store'])->name('store.partida');
+    Route::get('/getpartida/{id}', [PartidaPresupuestalController::class, 'Edit'])->name('get.partida');
+    Route::delete('/deletepartida/{id}', [PartidaPresupuestalController::class, 'Delete'])->name('delete.partida');
+
 
     Route::post('/storearea', [AreaController::class, 'Store'])->name('store.area');
+    Route::get('/editearea/{id}', [AreaController::class, 'Edit'])->name('edit.area');
+    Route::delete('/deletearea/{id}', [AreaController::class, 'Delete'])->name('delete.area');
 
 
 });
