@@ -4,51 +4,68 @@ import AuthenLayout from '@/Layouts/AuthenLayout.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
-import TextArea from '@/Components/TextArea.vue'
-import { Head, useForm } from '@inertiajs/vue3';
-import {ref, onMounted} from 'vue';
+import TextArea from '@/Components/TextArea.vue';
+import { Head, useForm, router } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Drawer from 'primevue/drawer';
 import axios from 'axios';
+import Toast from 'primevue/toast';
+import { useToast } from 'primevue/usetoast';
+import FieldError from '@/Components/FieldError.vue';
+const toast = useToast();
 
-
-const products = ref();
-
-const data = [
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-];
+defineProps({
+    partida:{
+        type:Array,
+        default: []
+    }
+});
 
 const size = ref({ label: 'Small', value: 'small' });
-
-onMounted(() => {
-    products.value = data; 
-});
 
 const visibleRight = ref(false);
 const showspinner = ref(true);
 const btndisabled = ref(false);
+const msgerrors = ref ([]);
 
 const form = useForm({ 
     id: '',
-    Nopartida: '',
-    Descripcion: '',
+    no_partida: '',
+    nombre: '',
+    descripcion: '',
 });
 
 const submit = async () => {
     showspinner.value = false;
     btndisabled.value = true;
-    // let resp = await axios.post(route(''), form);
-    // console.log(resp);
+
+    try {
+        let resp = await axios.post(route('store.partida'), form);
+        if(resp.data.result == 1){
+            showSuccess(resp.data.msg)
+            showspinner.value = true;
+            btndisabled.value = false;
+            form.reset();
+            router.reload({only:['partida']});
+        }else{
+            showSucces(msg)
+            showspinner.value = true;
+            btndisabled.value = false;
+        }
+    } catch (error) {
+        showspinner.value = true;
+        btndisabled.value = false;
+        msgerrors.value = error.response.data.errors;
+    }
+    
 }
+
+const showSuccess = (msg) => {
+    toast.add({ severity: 'success', summary: 'Success', detail: msg, life: 3000 });
+};
 
 const editProduct  = (holis) => {
     console.log(holis);
@@ -76,9 +93,9 @@ const editProduct  = (holis) => {
                 </PrimaryButton>
             </div>
                         
-            <DataTable :value="products" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
-                <Column field="Code" header="No° Partida"></Column>
-                <Column field="Name" header="Descripcion"></Column>
+            <DataTable :value="partida" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+                <Column field="no_partida" header="No° Partida"></Column>
+                <Column field="nombre" header="nombre"></Column>
                 <Column header="Acciones">
                     <template #body="rowdata">
                         <div class="flex gap-2">
@@ -90,7 +107,7 @@ const editProduct  = (holis) => {
             </DataTable>
         </div>        
 
-        
+    <Toast />
         <Drawer v-model:visible="visibleRight" header="Partida Presupuestal" position="right">
             <form @submit.prevent="submit">
                 <div class="grid grid-cols-1 gap-4">
@@ -100,21 +117,33 @@ const editProduct  = (holis) => {
                         v-model="form.id"
                     />
                     <div>
-                        <InputLabel for="Nopartida" value="No° de partida"/>
+                        <InputLabel for="no_partida" value="No° de partida"/>
                         <TextInput                         
-                            id="Nopartida"
+                            id="no_partida"
                             type="text"
                             class="w-full mt-1"
-                            v-model="form.Nopartida"
+                            v-model="form.no_partida"
                         />
+                        <FieldError :message="msgerrors.no_partida"/>
                     </div>
                     <div>
-                        <InputLabel for="Descripcion" value="Descripción"/>
-                        <TextArea                         
-                            id="Descripcion"
+                        <InputLabel for="nombre" value="Nombre de la partida"/>
+                        <TextInput                         
+                            id="nombre"
+                            type="text"
                             class="w-full mt-1"
-                            v-model="form.Descripcion"
+                            v-model="form.nombre"
                         />
+                        <FieldError :message="msgerrors.nombre"/>
+                    </div>
+                    <div>
+                        <InputLabel for="descripcion" value="Descripción"/>
+                        <TextArea                         
+                            id="descripcion"
+                            class="w-full mt-1"
+                            v-model="form.descripcion"
+                        />
+                        <FieldError :message="msgerrors.descripcion"/>
                     </div>                    
                 </div>                
                 
