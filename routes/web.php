@@ -61,6 +61,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/deletearea/{id}', [AreaController::class, 'Delete'])->name('delete.area');
 
 
+    /* buscador */
+    Route::get('/searcharea/{name}', [SearchController::class, 'SearcArea'])->name('search.area');
+
+
 });
 
 require __DIR__.'/auth.php';

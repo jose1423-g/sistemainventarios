@@ -21,7 +21,7 @@ const visibleRight = ref(false);
 const showspinner = ref(true);
 const btndisabled = ref(false);
 
-const searchText = ref();
+const searcharea = ref();
 
 const data = [
         {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
@@ -43,8 +43,8 @@ onMounted(() => {
 const form = useForm({ 
     id: '',
     Nombre: '',
-    IdArea: '',
-    Activo: '',
+    area: '',
+    activo: '',
 });
 
 const submit = async () => {
