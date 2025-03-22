@@ -78,14 +78,15 @@ const showError = (msg) => {
 const Edit = async (data) => {
      
     let resp = await axios.get(route('edit.personal', data.id));
-    
+        
         if (resp.data.result == 0) {
             showError(resp.data.msg);
         } else {
             visibleRight.value = true;
-            form.id = resp.data.id;
+            form.id = resp.data.id;            
             form.nombre = resp.data.nombre;
-            form.area = resp.data.area;
+            form.area = resp.data.area_id;
+            form.searcharea = resp.data.area;
             form.activo = resp.data.activo;
         }
 }
@@ -105,7 +106,7 @@ const Delete  = async (data) => {
 const SearchArea = async () => {
     if (form.searcharea.trim()) {
         try {
-            let resp = await axios.get(route('search.area', form.searcharea));
+            let resp = await axios.get(route('search.area', form.searcharea));            
             dataArea.value = resp.data;
         } catch (error) {
             showError(resp.data.msg);
@@ -122,6 +123,11 @@ const handleSelection = (id, text) => {
     dataArea.value = [];
 };
 
+const ClearForm = () => {
+    form.reset();
+    visibleRight.value = true;
+}
+
 </script>
 
 <template>
@@ -134,7 +140,7 @@ const handleSelection = (id, text) => {
             <h3 class="mb-5 text-2xl font-bold text-gray-900">Personal</h3>
             
             <div class="flex justify-end mb-5">
-                <PrimaryButton type="button" @click="visibleRight = true">
+                <PrimaryButton type="button" @click="ClearForm">
                     <div class="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="mr-2 size-5">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z" clip-rule="evenodd" />

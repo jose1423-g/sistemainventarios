@@ -50,8 +50,19 @@ class PersonalController extends Controller
     
     public function Edit ($id) {
         try {
-            $data = Personal::find($id);
-            return $data;
+            // $data = Personal::find($id);
+            $personal = Personal::from('personal as t1')
+            ->leftJoin('areas as t2', 't1.area', '=', 't2.id')
+            ->select(
+                't1.id',
+                't1.nombre',
+                't1.area as area_id',
+                't1.activo',
+                't2.area'
+            )
+            ->where('t1.id', $id)
+            ->first();
+            return $personal;
         } catch (\Throwable $th) {
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
         }
