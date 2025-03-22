@@ -3,6 +3,10 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PartidaPresupuestalController;
 use App\Http\Controllers\PersonalController;
+use App\Http\Controllers\EntradaController;
+use App\Http\Controllers\SalidaController;
+use App\Http\Controllers\UsuariosController;
+use App\Http\Controllers\ProductosController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\SearchController;
 use Illuminate\Foundation\Application;
@@ -22,17 +26,11 @@ Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::get('/productos', function () {
-    return Inertia::render('Productos');
-})->middleware(['auth', 'verified'])->name('productos');
+Route::get('/productos', [ProductosController::class, 'Showview'])->middleware(['auth', 'verified'])->name('productos');
 
-Route::get('/entrada', function () {
-    return Inertia::render('Entrada');
-})->middleware(['auth', 'verified'])->name('entrada');
+Route::get('/entrada', [EntradaController::class, 'Showview'])->middleware(['auth', 'verified'])->name('entrada');
 
-Route::get('/salida', function () {
-    return Inertia::render('Salida');
-})->middleware(['auth', 'verified'])->name('salida');
+Route::get('/salida', [SalidaController::class, 'Showview'])->middleware(['auth', 'verified'])->name('salida');
 
 Route::get('/area', [AreaController::class, 'Showview'])->middleware(['auth', 'verified'])->name('area');
 
@@ -40,9 +38,7 @@ Route::get('/personal', [PersonalController::class, 'Showview'])->middleware(['a
 
 Route::get('/partidapresupuestal', [PartidaPresupuestalController::class, 'Showview'])->middleware(['auth', 'verified'])->name('partidapresupuestal');
 
-Route::get('/usuarios', function () {
-    return Inertia::render('Usuarios');
-})->middleware(['auth', 'verified'])->name('usuarios');
+Route::get('/usuarios', [UsuariosController::class, 'Showview'])->middleware(['auth', 'verified'])->name('usuarios');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -59,10 +55,29 @@ Route::middleware('auth')->group(function () {
     /* personal */
     Route::post('/storepersonal', [PersonalController::class, 'Store'])->name('store.personal');
     Route::get('/editpersonal/{id}', [PersonalController::class, 'Edit'])->name('edit.personal');
-    Route::delete('/deletepersonal/{id}', [PersonalController::class, 'Delete'])->name('delete.personal');
+    Route::delete('/deletepersonal/{id}', [PersonalController::class, 'Delete'])->name('delete.personal'); 
+    /* Salida */
+    Route::post('/storesalida', [SalidaController::class, 'Store'])->name('store.salida');
+    Route::get('/editpersonal/{id}', [SalidaController::class, 'Edit'])->name('edit.salida');
+    Route::delete('/deletepersonal/{id}', [SalidaController::class, 'Delete'])->name('delete.salida');
+    /* Entrada */
+    Route::post('/storeentrada', [EntradaController::class, 'Store'])->name('store.entrada');
+    Route::get('/editentrada/{id}', [EntradaController::class, 'Edit'])->name('edit.entrada');
+    Route::delete('/deleteentrada/{id}', [EntradaController::class, 'Delete'])->name('delete.entrada');
+    /* Productos */
+    Route::post('/storeproducto', [ProductosController::class, 'Store'])->name('store.producto');
+    Route::get('/editproducto/{id}', [ProductosController::class, 'Edit'])->name('edit.producto');
+    Route::delete('/deleteproducto/{id}', [ProductosController::class, 'Delete'])->name('delete.producto');
+    /* usuarios */
+    Route::post('/storeusuario', [UsuariosController::class, 'Store'])->name('store.usuario');
+    Route::get('/editusuario/{id}', [UsuariosController::class, 'Edit'])->name('edit.usuario');
+    Route::delete('/deleteusuario/{id}', [UsuariosController::class, 'Delete'])->name('delete.usuario');
 
     /* buscador */
     Route::get('/searcharea/{name}', [SearchController::class, 'SearchArea'])->name('search.area');
+    Route::get('/searchordencompra/{name}', [SearchController::class, 'SearchOrdenCompra'])->name('search.ordencompra');
+    Route::get('/searchpartidas/{name}', [SearchController::class, 'SearchPartidas'])->name('search.partidas');
+    Route::get('/searchproductos/{name}', [SearchController::class, 'SearchProductos'])->name('search.productos');
 
 
 });

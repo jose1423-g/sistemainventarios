@@ -16,4 +16,34 @@ class SearchController extends Controller
         }
         
     }
+
+    public function SearchOrdenCompra ($name) {
+        try {
+            $areas = Areas::where('area', 'LIKE',  "%$name%")->get();   
+            return $areas;    
+        } catch (\Throwable $th) {
+            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
+        }
+        
+    }
+
+    public function SearchPartidas ($name) {
+        try {
+            $areas = Areas::where('area', 'LIKE',  "%$name%")->get();   
+            return $areas;    
+        } catch (\Throwable $th) {
+            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
+        }
+        
+    }
+
+    public function SearchProductos ($name) {
+        try {
+            $areas = Areas::where('area', 'LIKE',  "%$name%")->get();   
+            return $areas;    
+        } catch (\Throwable $th) {
+            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
+        }
+        
+    }
 }
