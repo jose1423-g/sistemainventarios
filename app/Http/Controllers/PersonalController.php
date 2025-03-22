@@ -1,18 +1,21 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\Personal;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Models\Areas;
 
-class AreaController extends Controller
+class PersonalController extends Controller
 {
     public function Showview () {
-        $areas  = Areas::all();
-        return Inertia::render('Area', 
+
+        $personal = Personal::from('personal as t1')
+        ->leftJoin('areas as t2', 't1.area', '=', 't2.id')
+        ->get();
+
+        return Inertia::render('Personal', 
             [
-                'Areas' => $areas,
+                'Personal' => $personal
             ]
         );
     }
@@ -20,32 +23,34 @@ class AreaController extends Controller
     public function Store (Request $request) {        
         
         $request->validate([
+            'nombre' => 'required',
             'area' => 'required',
         ],[
-            'area.required' => 'El campo Area es obligatorio.',
+            'nombre.required' => 'El campo nombre es obligatorio.',
+            'area.required' => 'El campo area es obligatorio.',
         ]);
 
         try {
 
-            Areas::updateOrCreate(
+            Personal::updateOrCreate(
                 ['id' => $request->id],
                 [
-                    'area' => $request->area, 
-                    'activa' => $request->activa
+                    'nombre' => $request->nombre, 
+                    'area' => $request->area,
+                    'activo' => $request->activo
                 ]
             );
-            return response()->json(['result' => 1, 'msg' => 'Area creada con exito']);
+            return response()->json(['result' => 1, 'msg' => 'Personal creado con exito']);
 
         } catch (\Throwable $th) {
             
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
-        }
-        
-    }   
+        }        
+    }
     
     public function Edit ($id) {
         try {
-            $data = Areas::find($id);
+            $data = Personal::find($id);
             return $data;
         } catch (\Throwable $th) {
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
@@ -55,11 +60,12 @@ class AreaController extends Controller
 
     public function Delete ($id) {
         try {            
-            Areas::destroy($id);
-            return response()->json(['result' => 1, 'msg' => 'Area Eliminada con exito']);
+            Personal::destroy($id);
+            return response()->json(['result' => 1, 'msg' => 'Personal Eliminado con exito']);
         } catch (\Throwable $th) {
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
         }
         
     }
+
 }

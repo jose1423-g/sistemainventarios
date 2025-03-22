@@ -8,7 +8,12 @@ use App\Models\Areas;
 class SearchController extends Controller
 {
     public function SearchArea ($name) {
-        $data = Areas::where('area', $name)->get();   
-        return $data;
+        try {
+            $areas = Areas::where('area', 'LIKE',  "%$name%")->get();   
+            return $areas;    
+        } catch (\Throwable $th) {
+            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
+        }
+        
     }
 }
