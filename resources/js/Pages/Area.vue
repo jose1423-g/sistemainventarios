@@ -127,7 +127,6 @@ const ClearForm = () => {
             </div>
             <DataTable :value="Areas" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                 <Column field="area" header="Area"></Column>
-                <Column field="Name" header="Personal del area"></Column>
                 <Column header="Activa">
                     <template #body="rowdata">
                         <template v-if="rowdata.data.activa == 1">
