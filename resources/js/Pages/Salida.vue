@@ -2,6 +2,7 @@
 // import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import AuthenLayout from '@/Layouts/AuthenLayout.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Modal from '@/Components/Modal.vue';
@@ -123,7 +124,7 @@ function Search () {
                 <h3 class="text-xl font-semibold text-gray-900">
                     Salida
                 </h3>
-                <button type="button" class="inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:bg-gray-200 hover:text-gray-900 ms-auto">
+                <button type="button" @click="closeModal" class="inline-flex items-center justify-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:bg-gray-200 hover:text-gray-900 ms-auto">
                     <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                     </svg>
@@ -131,13 +132,114 @@ function Search () {
             </div>
             
             <!-- Modal body -->
-            <div class="p-4 space-y-4 md:p-5">
-            </div>
+            <form @submit.prevent="submit">
+                <div class="p-4 space-y-4 md:p-5">
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        <TextInput                         
+                            id="id"
+                            type="hidden"
+                            v-model="form.id"
+                        />                    
+                        <div class="relative">
+                            <InputLabel for="NoOrden" value="No° orden de compra"/>
+                            <TextInput
+                                id="NoOrden"
+                                type="search"
+                                class="w-full mt-1"                            
+                                placeholder="Buscar..."
+                                v-model="form.NoOrden"
+                            />
+                            <SearchResult :id="'NoOrden'" :data="data2" :label="'Code'" :text="'Name'" :SelectOption="editProduct" />
+                        </div>
+                        <div>
+                            <InputLabel for="NoSalida" value="No° de salida"/>
+                            <TextInput
+                                id="NoSalida"
+                                type="text"
+                                class="w-full mt-1"
+                                placeholder="Buscar..."
+                                v-model="form.NoSalida"
+                            />
+                            <SearchResult :id="'NoSalida'" :data="data2" :label="'Code'" :text="'Name'" :SelectOption="editProduct" />
+                        </div>
+                        <div>
+                            <InputLabel for="FechaSalida" value="Fecha de salida"/>
+                            <TextInput
+                                id="FechaSalida"
+                                type="date"
+                                class="w-full mt-1"
+                                v-model="form.FechaSalida"
+                            />
+                        </div>                    
+                        <div class="relative">
+                            <InputLabel for="Area" value="Area"/>
+                            <TextInput
+                                id="Area"
+                                type="search"
+                                class="w-full mt-1"                            
+                                placeholder="Buscar..."
+                                v-model="form.Area"
+                            />
+                            <SearchResult :id="'Area'" :data="data2" :label="'Code'" :text="'Name'" :SelectOption="editProduct" />
+                        </div>                    
+                        <div>
+                            <InputLabel for="Quienrecibe" value="Quien recibio"/>
+                            <TextInput
+                                id="Quienrecibe"
+                                type="text"
+                                class="w-full mt-1"
+                                v-model="form.Quienrecibe"
+                            />
+                        </div>
+                        <div class="relative">
+                            <InputLabel for="Productos" value="Agregar productos"/>
+                            <TextInput
+                                id="Productos"
+                                type="search"
+                                class="w-full mt-1"                            
+                                placeholder="Buscar..."
+                                v-model="form.Productos"
+                            />
+                            <SearchResult :id="'Productos'" :data="data2" :label="'Code'" :text="'Name'" :SelectOption="editProduct" />
+                        </div>                        
+                    </div>
+                    <div>
+                        <h3 class="mb-3 font-bold text-md">Productos agregados</h3>
+                        <div class="">
+                            <ul class="max-h-[15rem] overflow-y-auto list-none border border-gray-200 rounded-md">
+                                <li v-for="item in 10"  class="flex flex-wrap items-center justify-between gap-3 px-3 py-2 hover:bg-gray-200">
+                                    <p class="mb-2 font-semibold sm:mb-0">nombrejsoownoneonowenonnsksnncsncnnncksnscn2</p>
+                                    
+                                    <button type="button" class="hover:text-blue-700">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                            <path fill-rule="evenodd" d="M1 5.25A2.25 2.25 0 0 1 3.25 3h13.5A2.25 2.25 0 0 1 19 5.25v9.5A2.25 2.25 0 0 1 16.75 17H3.25A2.25 2.25 0 0 1 1 14.75v-9.5Zm1.5 5.81v3.69c0 .414.336.75.75.75h13.5a.75.75 0 0 0 .75-.75v-2.69l-2.22-2.219a.75.75 0 0 0-1.06 0l-1.91 1.909.47.47a.75.75 0 1 1-1.06 1.06L6.53 8.091a.75.75 0 0 0-1.06 0l-2.97 2.97ZM12 7a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    
+                                    <button type="button" class="hover:text-red-700">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-5">
+                                            <path fill-rule="evenodd" d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.285a1.5 1.5 0 0 0 1.493-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25Zm2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75h-1.5ZM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6Zm3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5a.75.75 0 0 1 .786-.711Z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>                                    
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             
-            <!-- Modal footer -->
-            <div class="flex items-center justify-end p-4 border-t border-gray-200 rounded-b md:p-5">
-                
-            </div>                         
+                <!-- Modal footer -->
+                <div class="flex items-center justify-end gap-3 p-4 border-t border-gray-200 rounded-b md:p-5">
+                    <SecondaryButton type="button" @click="closeModal">                        
+                        cancelar
+                    </SecondaryButton>
+                    <PrimaryButton type="submit" :Show="showspinner" :Disabled="btndisabled"> 
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-4">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z" clip-rule="evenodd" />
+                        </svg>
+                        <span>guardar</span>
+                    </PrimaryButton>
+                </div>        
+            </form>                 
         </Modal>
         
         <Drawer v-model:visible="visibleRight" header="Salida" position="right" class="!w-[25rem]">
