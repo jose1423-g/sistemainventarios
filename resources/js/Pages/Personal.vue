@@ -76,9 +76,8 @@ const showError = (msg) => {
 };
 
 const Edit = async (data) => {
-     
+    
     let resp = await axios.get(route('edit.personal', data.id));
-        
         if (resp.data.result == 0) {
             showError(resp.data.msg);
         } else {
@@ -93,11 +92,11 @@ const Edit = async (data) => {
 
 const Delete  = async (data) => {
     
-    let resp = await axios.delete(route('delete.area', data.id));    
+    let resp = await axios.delete(route('delete.personal', data.id));    
     
         if (resp.data.result == 1) {
             showSuccess(resp.data.msg)
-            router.reload({ only: ['Areas'] });
+            router.reload({ only: ['Personal'] });
         } else {
             showError(resp.data.msg);            
         }

@@ -11,8 +11,14 @@ class PersonalController extends Controller
 
         $personal = Personal::from('personal as t1')
         ->leftJoin('areas as t2', 't1.area', '=', 't2.id')
+        ->select(
+            't1.id',
+            't1.nombre',
+            't1.area as area_id',
+            't1.activo',
+            't2.area'
+        )
         ->get();
-
         return Inertia::render('Personal', 
             [
                 'Personal' => $personal

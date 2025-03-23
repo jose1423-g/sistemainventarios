@@ -58,8 +58,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/deletepersonal/{id}', [PersonalController::class, 'Delete'])->name('delete.personal'); 
     /* Salida */
     Route::post('/storesalida', [SalidaController::class, 'Store'])->name('store.salida');
-    Route::get('/editpersonal/{id}', [SalidaController::class, 'Edit'])->name('edit.salida');
-    Route::delete('/deletepersonal/{id}', [SalidaController::class, 'Delete'])->name('delete.salida');
+    Route::get('/editsalida/{id}', [SalidaController::class, 'Edit'])->name('edit.salida');
+    Route::delete('/deletesalida/{id}', [SalidaController::class, 'Delete'])->name('delete.salida');
     /* Entrada */
     Route::post('/storeentrada', [EntradaController::class, 'Store'])->name('store.entrada');
     Route::get('/editentrada/{id}', [EntradaController::class, 'Edit'])->name('edit.entrada');
