@@ -100,6 +100,7 @@ const Delete  = async (data) => {
 
 const ClearForm = () => {
     form.reset();
+    msgerrors.value  = [];
     visibleRight.value = true;
 }
 

@@ -125,6 +125,7 @@ const handleSelection = (id, text) => {
 
 const ClearForm = () => {
     form.reset();
+    msgerrors.value  = [];
     visibleRight.value = true;
 }
 
