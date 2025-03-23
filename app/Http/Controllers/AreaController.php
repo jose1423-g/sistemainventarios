@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Areas;
-use PhpParser\Node\Stmt\TryCatch;
 
 class AreaController extends Controller
 {
@@ -43,7 +42,6 @@ class AreaController extends Controller
         }
         
     }   
-    
     
     public function Edit ($id) {
         try {

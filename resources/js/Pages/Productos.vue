@@ -128,7 +128,7 @@ function Search () {
                             placeholder="Buscar..."
                             v-model="form.NoOrden"
                         />
-                        <SearchResult :data="data = []" :label="'Code'" :text="'Name'" :SelectOption="editProduct" />
+                        <SearchResult :data="data = []" :id="'NoOrden'" :label="'Code'" :text="'Name'" :select="editProduct" />
                     </div>
                     <div>
                         <InputLabel for="Nombre" value="Nombre"/>
@@ -192,7 +192,7 @@ function Search () {
                             placeholder="Buscar..."
                             v-model="form.IdPartida"
                         />
-                        <SearchResult :data="data = []" :label="'Code'" :text="'Name'" :SelectOption="editProduct" />
+                        <SearchResult :data="data = []"  :id="'IdPartida'" :label="'Code'" :text="'Name'" :select="editProduct" />
                     </div>                    
                 </div>                
                 

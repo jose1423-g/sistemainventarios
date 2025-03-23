@@ -32,7 +32,7 @@ defineProps({
     }
 });
 
-const EsActivo = [ {'id': 0, 'descripcion': 'Desactivada'}, {'id': 1, 'descripcion': 'Activa'},]
+const EsActivo = [{'id': 1, 'descripcion': 'Activa'}, {'id': 0, 'descripcion': 'Desactivada'}]
 
 const form = useForm({ 
     id: '',
@@ -98,6 +98,10 @@ const Delete  = async (data) => {
         }
 }
 
+const ClearForm = () => {
+    form.reset();
+    visibleRight.value = true;
+}
 
 
 </script>
@@ -112,7 +116,7 @@ const Delete  = async (data) => {
             <h3 class="mb-5 text-2xl font-bold text-gray-900">Area</h3>
             
             <div class="flex justify-end mb-5">
-                <PrimaryButton type="button" @click="visibleRight = true">
+                <PrimaryButton type="button" @click="ClearForm">
                     <div class="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="mr-2 size-5">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z" clip-rule="evenodd" />
@@ -123,7 +127,6 @@ const Delete  = async (data) => {
             </div>
             <DataTable :value="Areas" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                 <Column field="area" header="Area"></Column>
-                <Column field="Name" header="Personal del area"></Column>
                 <Column header="Activa">
                     <template #body="rowdata">
                         <template v-if="rowdata.data.activa == 1">
