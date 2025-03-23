@@ -49,11 +49,21 @@ class PartidaPresupuestalController extends Controller
     }   
 
     public function Edit ($id) {
-
+        try{
+            $data = Partidas::find($id);
+            return $data;
+        }catch(\Throwable $th){
+            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
+        }
     }
 
     public function Delete ($id) {
-        
+        try{
+            Partidas::destroy($id);
+            return response()->json(['result' => 1, 'msg' => 'Partida Eliminada con exito']);
+        }catch(\Throwable $th){
+            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
+        }
     }
 
 }
