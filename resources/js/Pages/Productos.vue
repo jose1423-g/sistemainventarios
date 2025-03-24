@@ -20,59 +20,118 @@ const products = ref([]);
 const visibleRight = ref(false);
 const showspinner = ref(true);
 const btndisabled = ref(false);
-
-const searchText = ref();
-
-const data = [
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': '123456', 'Name': 'Juan',	'Category': 'Accessories', 'Quantity' : '25'},
-];
+const msgerrors = ref([]);
+const dataEntrada = ref([]);
 
 const size = ref({ label: 'Small', value: 'small' });
 
-onMounted(() => {    
-    products.value = data;    
-});
-
 const form = useForm({ 
     id: '',
-    NoOrden: '',
+    searchentrada: '',
+    fk_entrada: '',
     Nombre: '',
     Descripcion: '',
     Totalarticulos: '', 
     IdPartida: '',
     Unidad: '',
-    Precio: '',   
+    Precio: '',
     img: '',
 });
 
 const submit = async () => {
     showspinner.value = false;
-    btndisabled.value = true;
-    // let resp = await axios.post(route(''), form);
-    // console.log(resp);
+    btndisabled.value = true; 
+    try {
+        let resp = await axios.post(route('store.entrada'), form);
+        if (resp.data.result == 1) {
+            showSuccess(resp.data.msg)
+            showspinner.value = true;
+            btndisabled.value = false;
+            form.reset();
+            router.reload({ only: ['Entradas'] });
+            msgerrors.value  = [];
+        } else {
+            showError(resp.data.msg)
+            showspinner.value = true;
+            btndisabled.value = false;
+        }        
+    } catch (error) {
+        showspinner.value = true;
+        btndisabled.value = false;
+        msgerrors.value = error.response.data.errors;
+    }       
 }
 
-const editProduct  = (holis) => {
-    console.log(holis);
-}
+const showSuccess = (msg) => {
+    toast.add({ severity: 'success', summary: 'Success', detail: msg, life: 3000 });
+};
 
-/* funcion para realizar busquedas */
-function Search () {    
-    if (searchText.value.trim()) {
-        console.log(searchText)
-        products.value = data2;
-    } else {
-        console.log('no tiene nada')
-        products.value = data;
-    }
+const showError = (msg) => {
+    toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 3000 });
+};
+
+const Edit = async (data) => {
+     
+    // let resp = await axios.get(route('edit.entrada', data.id));
     
+        if (resp.data.result == 0) {
+            showError(resp.data.msg);
+        } else {
+            console.log(resp.data);
+            visibleRight.value = true;
+            form.id = resp.data.id;
+            form.no_orden = resp.data.no_orden;
+            form.proveedor = resp.data.proveedor;
+            form.fecha_compra = resp.data.fecha_compra;
+            form.fecha_entrada = resp.data.fecha_entrada;
+            form.area_solicitante = resp.data.area_solicitante;
+            form.numero_requisicion = resp.data.numero_requisicion;
+            form.cantidad_piezas = resp.data.cantidad_piezas;
+            form.precio_unitario = resp.data.precio_unitario;
+            form.IVA = resp.data.IVA;
+            form.precio_unitario = resp.data.precio_unitario;
+            form.Total = resp.data.Total;
+            form.searcharea = resp.data.area 
+        }
+    
+}
+
+const Delete  = async (data) => {
+    
+    // let resp = await axios.delete(route('delete.entrada', data.id));    
+    
+        if (resp.data.result == 1) {
+            showSuccess(resp.data.msg)
+            router.reload({ only: ['Entradas'] });
+        } else {
+            showError(resp.data.msg);            
+        }
+}
+
+const SearchEntrada = async () => {
+    if (form.searchentrada.trim()) {
+        try {
+            let resp = await axios.get(route('search.partidas', form.searchentrada));            
+            dataEntrada.value = resp.data;
+        } catch (error) {
+            showError(resp.data.msg);
+        }        
+    } else {
+        dataEntrada.value = [];
+        form.fk_entrada = '';
+    }    
+}
+
+const handleSelection = (id, text) => {
+    form.fk_entrada = id;
+    form.searchentrada = text;
+    dataEntrada.value = [];
+};
+
+const ClearForm = () => {
+    form.reset();
+    msgerrors.value  = [];
+    visibleRight.value = true;
 }
 
 </script>
@@ -87,7 +146,7 @@ function Search () {
             <h3 class="mb-5 text-2xl font-bold text-gray-900">Productos</h3>
             
             <div class="flex justify-end mb-5">
-                <PrimaryButton type="button" @click="visibleRight = true">
+                <PrimaryButton type="button" @click="ClearForm">
                     <div class="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="mr-2 size-5">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z" clip-rule="evenodd" />
@@ -103,8 +162,8 @@ function Search () {
                 <Column header="Acciones">
                     <template #body="rowdata">
                         <div class="flex gap-2">
-                            <PrimaryButton type="button" @click="editProduct(rowdata.data)">Editar</PrimaryButton>
-                            <PrimaryButton type="button" @click="editProduct(rowdata.data)">Eliminar</PrimaryButton>
+                            <PrimaryButton type="button" @click="Edit(rowdata.data)">Editar</PrimaryButton>
+                            <PrimaryButton type="button" @click="Delete(rowdata.data)">Eliminar</PrimaryButton>
                         </div>
                     </template>
                 </Column>
@@ -126,10 +185,17 @@ function Search () {
                             type="search"
                             class="w-full mt-1"
                             placeholder="Buscar..."
-                            v-model="form.NoOrden"
+                            v-model="form.searchentrada"
+                            @input="SearchEntrada"
                         />
-                        <SearchResult :data="data = []" :id="'NoOrden'" :label="'Code'" :text="'Name'" :select="editProduct" />
+                        <SearchResult :data="dataEntrada" :id="'NoOrden'" :label="'id'" :text="'no_orden'" @select="handleSelection" />
                     </div>
+                    <TextInput
+                        id="fk_entrada"
+                        type="text"
+                        class="w-full mt-1"
+                        v-model="form.fk_entrada"
+                    />
                     <div>
                         <InputLabel for="Nombre" value="Nombre"/>
                         <TextInput
@@ -192,7 +258,7 @@ function Search () {
                             placeholder="Buscar..."
                             v-model="form.IdPartida"
                         />
-                        <SearchResult :data="data = []"  :id="'IdPartida'" :label="'Code'" :text="'Name'" :select="editProduct" />
+                        <SearchResult :data="data = []"  :id="'IdPartida'" :label="'Code'" :text="'Name'" :select="handleSelection" />
                     </div>                    
                 </div>                
                 
