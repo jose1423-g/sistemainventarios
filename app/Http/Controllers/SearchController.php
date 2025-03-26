@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Areas;
+use App\Models\Entradas;
 
 class SearchController extends Controller
 {
@@ -29,7 +30,7 @@ class SearchController extends Controller
 
     public function SearchPartidas ($name) {
         try {
-            $areas = Areas::where('area', 'LIKE',  "%$name%")->get();   
+            $areas = Entradas::where('no_orden', 'LIKE',  "%$name%")->get();   
             return $areas;    
         } catch (\Throwable $th) {
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
