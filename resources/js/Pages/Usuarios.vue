@@ -24,6 +24,10 @@ const toast = useToast();
         type:Array,
         default: []
     },
+    roles:{
+        type:Array,
+        default: []
+    }
 });
 
 const size = ref({ label: 'Small', value: 'small' });
@@ -46,7 +50,7 @@ const form = useForm({
     email: '',
     password: '',
     password_confirmation: '',
-    nombre_rol: '', 
+    fk_rol: '', 
 });
 
 const submit = async () => {
@@ -196,13 +200,16 @@ const ClearForm = () => {
                         />
                         <FieldError :message="msgerrors.password_confirmation" />
                         </div>
-                        <InputLabel for="nombre_rol" value="Asignar rol"/>
-                        <TextInput
-                        id="nombre_rol"
-                        type="text"
-                        class="w-full mt-1"
-                        v-model="form.nombre_rol"
-                        />              
+                        <InputLabel for="fk_rol" value="Asignar rol"/>
+                        <Select
+                            id="fk_rol"
+                            class="w-full mt-1"
+                            v-model="form.fk_rol"
+                            :data="roles"
+                            :label="'id'"
+                            :text="'nombre_rol'"
+                        />
+                        <FieldError :message="msgerrors.fk_rol" />              
                 </div>                
                 
                 <div class="flex justify-end mt-5">

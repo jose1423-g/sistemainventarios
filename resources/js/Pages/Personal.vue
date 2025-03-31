@@ -217,7 +217,7 @@ const ClearForm = () => {
                             v-model="form.searcharea"
                             @input="SearchArea"
                         />
-                        <SearchResult :data="dataArea" :id="'searcharea'" :label="'id'" :text="'area'" @select="handleSelection"/>
+                        <SearchResult v-if="form.searcharea" :data="dataArea" :id="'searcharea'" :label="'id'" :text="'area'" @select="handleSelection"/>
                         <FieldError :message="msgerrors.area" />
                     </div>                    
                     <TextInput
