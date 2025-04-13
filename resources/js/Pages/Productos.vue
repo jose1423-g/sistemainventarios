@@ -2,61 +2,108 @@
 // import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import AuthenLayout from '@/Layouts/AuthenLayout.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import DangerButton from '@/Components/DangerButton.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
-import Select from '@/Components/Select.vue';
+import InputFile from '@/Components/InputFile.vue';
 import SearchResult from '@/Components/SearchResult.vue';
 import TextArea from '@/Components/TextArea.vue'
-import { Head, useForm } from '@inertiajs/vue3';
-import {ref, onMounted} from 'vue';
+import FieldError from '@/Components/FieldError.vue';
+import { Head, useForm, router } from '@inertiajs/vue3';
+import { ref, watch, toRef  } from 'vue';
 
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Drawer from 'primevue/drawer';
 import axios from 'axios';
+import Toast from 'primevue/toast';
+import { useToast } from "primevue/usetoast";
+const toast = useToast();
 
-const products = ref([]);
+defineProps({
+    Productos: {
+        type: Array,
+        default: []
+    }    
+});
 
 const visibleRight = ref(false);
 const showspinner = ref(true);
 const btndisabled = ref(false);
 const msgerrors = ref([]);
 const dataEntrada = ref([]);
+const dataPartidas = ref([]);
+const dataProducto = ref([]);
+const url_img = ref(null);
+
+const searchproducto = ref('');
+const banderaproducto = ref(false);
+
+const searchpartida = ref('');
+const banderapatida = ref(false);
+
+const searchentrada = ref('');
+const banderaentrada = ref(false);
+
 
 const size = ref({ label: 'Small', value: 'small' });
 
 const form = useForm({ 
     id: '',
-    searchentrada: '',
     fk_entrada: '',
-    Nombre: '',
-    Descripcion: '',
-    Totalarticulos: '', 
-    IdPartida: '',
-    Unidad: '',
-    Precio: '',
+    nombre: '',
+    fk_partida: '',
+    descripcion: '',
+    stock: '',
+    unidad: '',
+    precio: '',
     img: '',
 });
 
-const submit = async () => {
+const fileinput = ref(null);
+
+const submit = async () => {    
+    
     showspinner.value = false;
     btndisabled.value = true; 
+    
+    const formData = new FormData()
+
+    formData.append('id', form.id);
+    formData.append('fk_entrada', form.fk_entrada);
+    formData.append('nombre', form.nombre);
+    formData.append('fk_partida', form.fk_partida);
+    formData.append('descripcion', form.descripcion);
+    formData.append('stock', form.stock);
+    formData.append('unidad', form.unidad);
+    formData.append('precio', form.precio);
+    formData.append('img', form.img);
+
     try {
-        let resp = await axios.post(route('store.entrada'), form);
+        let resp = await axios.post(route('store.producto'), formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
         if (resp.data.result == 1) {
+            visibleRight.value = false;
+            fileinput.value.Clearfilename();
+            searchentrada.value = '';
+            searchpartida.value = '';
+            searchproducto.value = '';
             showSuccess(resp.data.msg)
             showspinner.value = true;
             btndisabled.value = false;
             form.reset();
-            router.reload({ only: ['Entradas'] });
+            router.reload({ only: ['Productos'] });
             msgerrors.value  = [];
-        } else {
+        } else {            
             showError(resp.data.msg)
             showspinner.value = true;
             btndisabled.value = false;
         }        
     } catch (error) {
-        showspinner.value = true;
+        showspinner.value = false;
         btndisabled.value = false;
         msgerrors.value = error.response.data.errors;
     }       
@@ -72,64 +119,172 @@ const showError = (msg) => {
 
 const Edit = async (data) => {
      
-    // let resp = await axios.get(route('edit.entrada', data.id));
-    
-        if (resp.data.result == 0) {
-            showError(resp.data.msg);
-        } else {
-            console.log(resp.data);
-            visibleRight.value = true;
-            form.id = resp.data.id;
-            form.no_orden = resp.data.no_orden;
-            form.proveedor = resp.data.proveedor;
-            form.fecha_compra = resp.data.fecha_compra;
-            form.fecha_entrada = resp.data.fecha_entrada;
-            form.area_solicitante = resp.data.area_solicitante;
-            form.numero_requisicion = resp.data.numero_requisicion;
-            form.cantidad_piezas = resp.data.cantidad_piezas;
-            form.precio_unitario = resp.data.precio_unitario;
-            form.IVA = resp.data.IVA;
-            form.precio_unitario = resp.data.precio_unitario;
-            form.Total = resp.data.Total;
-            form.searcharea = resp.data.area 
-        }
-    
+    let resp = await axios.get(route('edit.producto', data.id));
+    if (resp.data.result == 0) {
+        showError(resp.data.msg);
+    } else {
+        visibleRight.value = true;        
+        form.id = resp.data.id;
+        form.fk_entrada = resp.data.fk_entrada;
+        form.nombre = resp.data.nombre;
+        form.fk_partida = resp.data.fk_partida;
+        form.descripcion = resp.data.descripcion;
+        form.stock = resp.data.stock;
+        form.unidad = resp.data.unidad;
+        form.precio = resp.data.precio;
+        form.img = resp.data.img;
+        url_img.value = resp.data.url_img;
+
+        searchentrada.value = resp.data.no_orden;
+        searchpartida.value = resp.data.no_partida;
+        searchproducto.value = resp.data.nombre;
+        
+        banderaentrada.value = true;
+        banderapatida.value = true;
+        banderaproducto.value = true;
+
+        setTimeout( () => {
+            banderaentrada.value = false;
+            banderapatida.value = false;
+            banderaproducto.value = false;
+        }, 100);
+    }
 }
 
 const Delete  = async (data) => {
     
-    // let resp = await axios.delete(route('delete.entrada', data.id));    
-    
-        if (resp.data.result == 1) {
-            showSuccess(resp.data.msg)
-            router.reload({ only: ['Entradas'] });
-        } else {
-            showError(resp.data.msg);            
-        }
+    let resp = await axios.delete(route('delete.producto', data.id));
+    if (resp.data.result == 1) {        
+        showSuccess(resp.data.msg)
+        router.reload({ only: ['Productos'] });
+    } else {
+        showError(resp.data.msg);            
+    }
 }
 
-const SearchEntrada = async () => {
-    if (form.searchentrada.trim()) {
+const SearchEntrada = async (newentrada) => {    
+    if (newentrada) {
         try {
-            let resp = await axios.get(route('search.partidas', form.searchentrada));            
+            let resp = await axios.get(route('search.entradas', newentrada));                        
             dataEntrada.value = resp.data;
         } catch (error) {
             showError(resp.data.msg);
-        }        
+        }
     } else {
         dataEntrada.value = [];
         form.fk_entrada = '';
+        banderaentrada.value = false;
     }    
 }
 
-const handleSelection = (id, text) => {
+const SearchProductos = async (newproduct) => {
+    if (newproduct) {
+        try {
+            let resp = await axios.get(route('search.productos', newproduct));                        
+            dataProducto.value = resp.data;
+        } catch (error) {
+            dataProducto.value = error.response.data;
+        }
+    } else {
+        dataProducto.value = [];
+        form.id = '';
+        banderaproducto.value = false;
+    }    
+}
+
+const SearchPartidas = async (searchpartida) => {
+    if (searchpartida) {
+        try {
+            let resp = await axios.get(route('search.partidas', searchpartida));
+            dataPartidas.value = resp.data;
+        } catch (error) {
+            showError(error.response.data.msg);
+        }
+    } else {
+        dataPartidas.value = [];
+        form.fk_partida = '';
+        banderapatida.value = false;
+    }    
+}
+
+const handleSelectionEntrada = (id, text) => {
+    banderaentrada.value = true;
     form.fk_entrada = id;
-    form.searchentrada = text;
+    searchentrada.value = text;    
     dataEntrada.value = [];
+
+    setTimeout( () => {
+        banderaentrada.value = false;
+    }, 100);
+        
 };
+
+const handleSelectionProducto = (id, text) => {
+    banderaproducto.value = true;
+    if (id === '') {
+        form.id = ''
+        dataProducto.value = [];
+        form.nombre = searchproducto.value;
+    } else {
+        form.id = id;
+        searchproducto.value = text;
+        form.nombre = searchproducto.value;
+        dataProducto.value = [];
+    }
+
+    setTimeout( () => {
+        banderaproducto.value = false;
+    }, 100);
+};
+
+const handleSelectionPartida = (id, text) => {
+    banderapatida.value = true;
+    form.fk_partida = id;
+    searchpartida.value = text;
+    dataPartidas.value = [];
+
+    setTimeout( () => {
+        banderapatida.value = false;
+    }, 100);
+};
+
+
+let timeoutproduct = null;
+watch(searchproducto, (newvalue) => {
+    if (banderaproducto.value) return false;
+    
+    clearTimeout(timeoutproduct);
+    timeoutproduct = setTimeout(() => {
+        SearchProductos(newvalue)
+    }, 500);
+});
+
+let timeoutentrada = null;
+watch(searchentrada, (newvalue) => {
+    if (banderaentrada.value) return false;
+
+    clearTimeout(timeoutentrada);
+    timeoutentrada = setTimeout(() => {
+        SearchEntrada(newvalue)
+    }, 500);
+});
+
+let timeoutpartidas = null;
+watch(searchpartida, (newvalue) => {
+    if (banderapatida.value) return false;
+    
+    clearTimeout(timeoutpartidas);
+    timeoutpartidas = setTimeout(() => {
+        SearchPartidas(newvalue)
+    }, 500);
+});
 
 const ClearForm = () => {
     form.reset();
+    url_img.value = null;
+    searchentrada.value = '';
+    searchpartida.value = '';
+    searchproducto.value = '';
     msgerrors.value  = [];
     visibleRight.value = true;
 }
@@ -137,7 +292,7 @@ const ClearForm = () => {
 </script>
 
 <template>
-    <Head title="Partida presupuestal" />
+    <Head title="Productos" />
 
 
     <AuthenLayout>
@@ -155,20 +310,34 @@ const ClearForm = () => {
                     </div>
                 </PrimaryButton>
             </div>
-            <DataTable :value="products" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
-                <Column field="Code" header="No° orden de compra"></Column>
-                <Column field="Name" header="Nombre"></Column>
-                <Column field="Name" header="No° Partida"></Column>
+            <DataTable :value="Productos" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+                <Column field="nombre" header="Producto"></Column>
+                <Column field="no_partida" header="No° Partida"></Column>
+                <Column field="no_orden" header="No° orden de compra"></Column>
+                <Column field="fecha_compra" header="Fecha de compra"></Column>
+                <Column field="fecha_entrada" header="Fecha de entrada"></Column>
                 <Column header="Acciones">
                     <template #body="rowdata">
                         <div class="flex gap-2">
-                            <PrimaryButton type="button" @click="Edit(rowdata.data)">Editar</PrimaryButton>
-                            <PrimaryButton type="button" @click="Delete(rowdata.data)">Eliminar</PrimaryButton>
+                            <PrimaryButton type="button" @click="Edit(rowdata.data)">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                    <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />
+                                    <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z" />
+                                </svg>
+                            </PrimaryButton>
+                            <DangerButton type="button" @click="Delete(rowdata.data)">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                    <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
+                                </svg>
+                            </DangerButton>
                         </div>
                     </template>
                 </Column>
             </DataTable>
-        </div>
+        </div> 
+
+        <!-- alerta -->
+        <Toast />
         
         <Drawer v-model:visible="visibleRight" header="Entrada de producto" position="right" class="!w-[25rem]">
             <form @submit.prevent="submit" enctype="multipart/form-data">
@@ -177,90 +346,108 @@ const ClearForm = () => {
                         id="id"
                         type="hidden"
                         v-model="form.id"
-                    />                    
+                    />
                     <div class="relative">
-                        <InputLabel for="NoOrden" value="No° orden de compra"/>
+                        <InputLabel for="searchentrada" value="No° orden de compra"/>
                         <TextInput
-                            id="NoOrden"
+                            id="searchentrada"
                             type="search"
-                            class="w-full mt-1"
                             placeholder="Buscar..."
-                            v-model="form.searchentrada"
-                            @input="SearchEntrada"
-                        />
-                        <SearchResult :data="dataEntrada" :id="'NoOrden'" :label="'id'" :text="'no_orden'" @select="handleSelection" />
+                            class="w-full mt-1"
+                            v-model="searchentrada"                                                        
+                        />                        
+                        <SearchResult v-if="searchentrada" :data="dataEntrada" :id="'searchentrada'" :label="'id'" :text="'no_orden'" @select="handleSelectionEntrada" />
+                        <FieldError :message="msgerrors.fk_entrada" />
                     </div>
                     <TextInput
                         id="fk_entrada"
-                        type="text"
+                        type="hidden"
                         class="w-full mt-1"
                         v-model="form.fk_entrada"
                     />
-                    <div>
-                        <InputLabel for="Nombre" value="Nombre"/>
+                    <div class="relative">
+                        <InputLabel for="producto" value="Producto"/>
                         <TextInput
-                            id="Nombre"
-                            type="text"
+                            id="producto"
+                            type="search"
+                            placeholder="Buscar..."
                             class="w-full mt-1"
-                            v-model="form.Nombre"
-                        />
-                    </div>                    
+                            v-model="searchproducto"                            
+                        />                        
+                        <SearchResult v-if="searchproducto" :data="dataProducto" :id="'producto'" :label="'id'" :text="'nombre'" @select="handleSelectionProducto" />
+                        <FieldError :message="msgerrors.nombre" />
+                    </div>
                     <div>
-                        <InputLabel for="Descripcion" value="Descripción"/>
+                        <InputLabel for="descripcion" value="Descripción"/>
                         <TextArea                         
-                            id="Descripcion"
+                            id="descripcion"
                             class="w-full mt-1"
-                            v-model="form.Descripcion"
+                            v-model="form.descripcion"
                         />
+                        <FieldError :message="msgerrors.descripcion" />
                     </div>
                     <div>
                         <InputLabel for="Totalarticulos" value="Total de articulos"/>
                         <TextInput
                             id="Totalarticulos"
-                            type="text"
+                            type="number"
                             class="w-full mt-1"
-                            v-model="form.Totalarticulos"
+                            v-model="form.stock"
                         />
+                        <FieldError :message="msgerrors.stock" />
                     </div>
                     <div>
-                        <InputLabel for="Unidad" value="Unidad"/>
+                        <InputLabel for="unidad" value="Unidad"/>
                         <TextInput
-                            id="Unidad"
+                            id="unidad"
                             type="text"
                             class="w-full mt-1"
-                            v-model="form.Unidad"
+                            v-model="form.unidad"
                         />
+                        <FieldError :message="msgerrors.unidad" />
                     </div>
                     <div>
-                        <InputLabel for="Precio" value="Precio"/>
+                        <InputLabel for="precio" value="Precio"/>
                         <TextInput
-                            id="Precio"
+                            id="precio"
                             type="text"
                             class="w-full mt-1"
-                            v-model="form.Precio"
+                            v-model="form.precio"
                         />
+                        <FieldError :message="msgerrors.precio" />
                     </div>
                     <div>
                         <InputLabel for="img" value="Imagen"/>
-                        <TextInput
-                            id="img"
-                            type="file"
-                            class="w-full mt-1"
-                            v-model="form.Precio"
+                        <InputFile
+                            ref="fileinput" 
+                            :id="'img'" 
+                            class="block w-full mt-1" 
+                            v-model="form.img"
                         />
+                        <FieldError :message="msgerrors.img" />
+                        <p v-if="form.img" class="text-blue-700 truncate mt-2">
+                            <a :href="url_img" target="_blank" class="">{{ url_img }}</a>
+                        </p>
                     </div>
+
                     <div class="relative">
-                        <InputLabel for="IdPartida" value="No° partida"/>
+                        <InputLabel for="searchpartida" value="No° partida"/>
                         <TextInput
-                            id="IdPartida"
+                            id="searchpartida"
                             type="search"
-                            class="w-full mt-1"
-                            placeholder="Buscar..."
-                            v-model="form.IdPartida"
+                            placeholder="Buscar..."                            
+                            class="w-full mt-1"                            
+                            v-model="searchpartida"
                         />
-                        <SearchResult :data="data = []"  :id="'IdPartida'" :label="'Code'" :text="'Name'" :select="handleSelection" />
-                    </div>                    
-                </div>                
+                        <SearchResult v-if="searchpartida" :data="dataPartidas"  :id="'searchpartida'" :label="'id'" :text="'no_partida'" @select="handleSelectionPartida" />
+                        <FieldError :message="msgerrors.fk_partida" />
+                    </div>
+                    <TextInput
+                        id="fk_partida"
+                        type="hidden"
+                        v-model="form.fk_partida"
+                    />                
+                </div>
                 
                 <div class="flex justify-end mt-5">
                     <PrimaryButton type="submit" :Show="showspinner" :Disabled="btndisabled" class="w-full"> 

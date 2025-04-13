@@ -8,8 +8,9 @@ defineProps({
         required: true,
     },
     data:{
-        type: [Object, Array],
+        type: Array,
         required: false,
+        default: [],
     },
     label: {
         type: String,
