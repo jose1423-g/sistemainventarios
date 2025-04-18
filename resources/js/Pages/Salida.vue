@@ -8,14 +8,19 @@ import TextInput from '@/Components/TextInput.vue';
 import Modal from '@/Components/Modal.vue';
 import SearchResult from '@/Components/SearchResult.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import {ref, onMounted} from 'vue';
+import {ref, onMounted, watch} from 'vue';
 
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import Drawer from 'primevue/drawer';
 import axios from 'axios';
 
 const products = ref([]);
+
+const dataProducto = ref([]);
+const searchproducto = ref(null);
+const banderaproducto = ref(false);
+const Cantidad = ref('');
+const producto_id = ref(null); 
 
 const visibleRight = ref(false);
 const showspinner = ref(true);
@@ -56,6 +61,7 @@ const form = useForm({
     Quienrecibe: '',
     imgproduct: '',
     Productos: [],
+    Cantidad: '',
 });
 
 const submit = async () => {
@@ -79,6 +85,59 @@ function Search () {
         products.value = data;
     }
     
+}
+
+const SearchProductos = async (newproduct) => {
+    if (newproduct) {
+        try {
+            let resp = await axios.get(route('search.productos', newproduct));                        
+            dataProducto.value = resp.data;
+        } catch (error) {
+            dataProducto.value = error.response.data;
+        }
+    } else {
+        dataProducto.value = [];
+        form.id = '';
+        banderaproducto.value = false;
+    }    
+}
+
+const handleSelectionProducto = (id, text) => {
+    banderaproducto.value = true;
+    producto_id.value = id;    
+    searchproducto.value = text;
+    dataProducto.value = [];
+
+    setTimeout( () => {
+        banderaproducto.value = false;
+    }, 100);
+};
+
+
+const addProduct = () => {
+    if (Cantidad.value === 0 || Cantidad.value  === '' || Cantidad.value < 0) {
+        alert('Agrega una cantidad valida.')
+        return false;
+    }
+    form.Productos.push({ id: producto_id.value, nombre: searchproducto.value, cantidad: Cantidad.value });
+    searchproducto.value = '';
+    Cantidad.value = '';
+    producto_id.value = '';
+    console.log(form.Productos);
+}
+
+let timeoutproduct = null;
+watch(searchproducto, (newvalue) => {
+    if (banderaproducto.value) return false;
+    
+    clearTimeout(timeoutproduct);
+    timeoutproduct = setTimeout(() => {
+        SearchProductos(newvalue)
+    }, 500);
+});
+
+const Removeproduct = (index) => {
+    console.log(index);
 }
 
 </script>
@@ -130,7 +189,6 @@ function Search () {
                     </svg>
                 </button>
             </div>
-            
             <!-- Modal body -->
             <form @submit.prevent="submit">
                 <div class="p-4 space-y-4 md:p-5">
@@ -176,7 +234,7 @@ function Search () {
                             <TextInput
                                 id="Area"
                                 type="search"
-                                class="w-full mt-1"                            
+                                class="w-full mt-1"
                                 placeholder="Buscar..."
                                 v-model="form.Area"
                             />
@@ -190,39 +248,64 @@ function Search () {
                                 class="w-full mt-1"
                                 v-model="form.Quienrecibe"
                             />
-                        </div>
+                        </div>                        
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="relative">
-                            <InputLabel for="Productos" value="Agregar productos"/>
+                            <InputLabel for="searchproducto" value="Agregar productos"/>
                             <TextInput
-                                id="Productos"
+                                id="searchproducto"
                                 type="search"
                                 class="w-full mt-1"                            
                                 placeholder="Buscar..."
-                                v-model="form.Productos"
+                                v-model="searchproducto"
                             />
-                            <SearchResult :id="'Productos'" :data="data2" :label="'Code'" :text="'Name'" :SelectOption="editProduct" />
+                            <SearchResult :id="'searchproducto'" :data="dataProducto" :label="'id'" :text="'nombre'" @select="handleSelectionProducto" />
+                        </div>
+                        <div class="flex items-end gap-1 justify-between">
+                            <div class="flex-1">
+                                <InputLabel for="Cantidad" value="Cantidad"/>
+                                <TextInput
+                                    id="Cantidad"
+                                    type="number"
+                                    class="w-full mt-1"
+                                    v-model="Cantidad"
+                                />                                
+                            </div>
+                            <PrimaryButton type="button" @click="addProduct">
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="mr-2 size-5">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span>Agregar</span>
+                                </div>
+                            </PrimaryButton>
                         </div>                        
                     </div>
                     <div>
                         <h3 class="mb-3 font-bold text-md">Productos agregados</h3>
-                        <div class="">
-                            <ul class="max-h-[15rem] overflow-y-auto list-none border border-gray-200 rounded-md">
-                                <li v-for="item in 10"  class="flex flex-wrap items-center justify-between gap-3 px-3 py-2 hover:bg-gray-200">
-                                    <p class="mb-2 font-semibold sm:mb-0">nombrejsoownoneonowenonnsksnncsncnnncksnscn2</p>
-                                    
-                                    <button type="button" class="hover:text-blue-700">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                            <path fill-rule="evenodd" d="M1 5.25A2.25 2.25 0 0 1 3.25 3h13.5A2.25 2.25 0 0 1 19 5.25v9.5A2.25 2.25 0 0 1 16.75 17H3.25A2.25 2.25 0 0 1 1 14.75v-9.5Zm1.5 5.81v3.69c0 .414.336.75.75.75h13.5a.75.75 0 0 0 .75-.75v-2.69l-2.22-2.219a.75.75 0 0 0-1.06 0l-1.91 1.909.47.47a.75.75 0 1 1-1.06 1.06L6.53 8.091a.75.75 0 0 0-1.06 0l-2.97 2.97ZM12 7a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-                                    
-                                    <button type="button" class="hover:text-red-700">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-5">
-                                            <path fill-rule="evenodd" d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.285a1.5 1.5 0 0 0 1.493-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25Zm2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75h-1.5ZM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6Zm3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5a.75.75 0 0 1 .786-.711Z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>                                    
-                                </li>
-                            </ul>
+                        <div class="relative overflow-x-auto">
+                            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 overflow-y-auto list-none border border-gray-200 rounded-md">
+                                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                        <th class="px-6 py-2">Producto</th>
+                                        <th class="px-6 py-2">Cantidad</th>
+                                        <th class="px-6 py-2">Accion</th>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="(item, index ) in form.Productos" :key="index" class="bg-white border-b border-gray-200">
+                                            <td class="px-6 py-2">{{ item.nombre }}</td>
+                                            <td class="px-6 py-2">{{ item.cantidad }}</td>
+                                            <td class="px-6 py-2">
+                                                <button type="button" class="hover:text-red-700" @click="Removeproduct(index)">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-5">
+                                                        <path fill-rule="evenodd" d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.285a1.5 1.5 0 0 0 1.493-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25Zm2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75h-1.5ZM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6Zm3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5a.75.75 0 0 1 .786-.711Z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                <!-- </li> -->
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -241,102 +324,6 @@ function Search () {
                 </div>        
             </form>                 
         </Modal>
-        
-        <Drawer v-model:visible="visibleRight" header="Salida" position="right" class="!w-[25rem]">
-            <form @submit.prevent="submit">
-                <div class="grid grid-cols-1 gap-4">
-                    <TextInput                         
-                        id="id"
-                        type="hidden"
-                        v-model="form.id"
-                    />                    
-                    <div class="relative">
-                        <InputLabel for="NoOrden" value="No° orden de compra"/>
-                        <TextInput
-                            id="NoOrden"
-                            type="search"
-                            class="w-full mt-1"                            
-                            placeholder="Buscar..."
-                            v-model="form.NoOrden"
-                        />
-                        <SearchResult :id="'NoOrden'" :data="data2" :label="'Code'" :text="'Name'" :SelectOption="editProduct" />
-                    </div>
-                    <div>
-                        <InputLabel for="NoSalida" value="No° de salida"/>
-                        <TextInput
-                            id="NoSalida"
-                            type="text"
-                            class="w-full mt-1"
-                            placeholder="Buscar..."
-                            v-model="form.NoSalida"
-                        />
-                        <SearchResult :id="'NoSalida'" :data="data2" :label="'Code'" :text="'Name'" :SelectOption="editProduct" />
-                    </div>
-                    <div>
-                        <InputLabel for="FechaSalida" value="Fecha de salida"/>
-                        <TextInput
-                            id="FechaSalida"
-                            type="date"
-                            class="w-full mt-1"
-                            v-model="form.FechaSalida"
-                        />
-                    </div>                    
-                    <div class="relative">
-                        <InputLabel for="Area" value="Area"/>
-                        <TextInput
-                            id="Area"
-                            type="search"
-                            class="w-full mt-1"                            
-                            placeholder="Buscar..."
-                            v-model="form.Area"
-                        />
-                        <SearchResult :id="'Area'" :data="data2" :label="'Code'" :text="'Name'" :SelectOption="editProduct" />
-                    </div>                    
-                    <div>
-                        <InputLabel for="Quienrecibe" value="Quien recibio"/>
-                        <TextInput
-                            id="Quienrecibe"
-                            type="text"
-                            class="w-full mt-1"
-                            v-model="form.Quienrecibe"
-                        />
-                    </div>
-                    <div class="relative">
-                        <InputLabel for="Productos" value="Agregar productos"/>
-                        <TextInput
-                            id="Productos"
-                            type="search"
-                            class="w-full mt-1"                            
-                            placeholder="Buscar..."
-                            v-model="form.Productos"
-                        />
-                        <SearchResult :id="'Productos'" :data="data2" :label="'Code'" :text="'Name'" :SelectOption="editProduct" />
-                    </div>
-                    <div class="">
-                        <h3 class="mb-1 font-bold text-gray-600 text-md">Productos agregados</h3>
-                        <ul class="w-full py-1 list-none border rounded-sm shadow-sm max-h-[15rem] overflow-y-auto">                            
-                            <li v-for="item in 2" class="flex items-center justify-between p-1 px-2 border-b hover:bg-gray-100">
-                                {{  item }}
-                                <button type="button" class="hover:text-red-700" @click="editProduct">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="text-gary-600 size-5">
-                                        <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
-                                    </svg>
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="flex justify-end mt-5">
-                    <PrimaryButton type="submit" :Show="showspinner" :Disabled="btndisabled" class="w-full"> 
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z" clip-rule="evenodd" />
-                        </svg>
-                        <span>guardar</span>
-                    </PrimaryButton>
-                </div>
-            </form>
-        </Drawer>
         
     </AuthenLayout>
 </template>

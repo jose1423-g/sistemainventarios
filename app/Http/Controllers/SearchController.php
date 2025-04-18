@@ -12,7 +12,14 @@ class SearchController extends Controller
 {
     public function SearchArea ($name) {
         try {
-            $areas = Areas::where('area', 'LIKE',  "%$name%")->get();   
+            $areas = Areas::from('areas as t1')
+            ->leftJoin('personal as t2', 't1.id', '=', 't2.area')
+            ->select(
+                't1.id',
+                't1.area',
+                't2.nombre',
+            )
+            ->where('t1.area', 'LIKE',  "%$name%")->get();
             return $areas;    
         } catch (\Throwable $th) {
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);
