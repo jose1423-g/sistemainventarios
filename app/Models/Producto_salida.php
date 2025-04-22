@@ -11,5 +11,6 @@ class Producto_salida extends Model
     protected $fillable = [
         'fk_producto',
         'fk_salida',
+        'cantidad',
     ];
 }

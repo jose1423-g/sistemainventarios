@@ -2,90 +2,192 @@
 // import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import AuthenLayout from '@/Layouts/AuthenLayout.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import DangerButton from '@/Components/DangerButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Modal from '@/Components/Modal.vue';
 import SearchResult from '@/Components/SearchResult.vue';
-import { Head, useForm } from '@inertiajs/vue3';
-import {ref, onMounted, watch} from 'vue';
+import FieldError from '@/Components/FieldError.vue';
+import { Head, useForm, router } from '@inertiajs/vue3';
+import {ref, watch} from 'vue';
 
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import axios from 'axios';
+import Toast from 'primevue/toast';
+import { useToast } from "primevue/usetoast";
+const toast = useToast();
 
-const products = ref([]);
+defineProps({
+    Salidas: {
+        type: Array,
+        default: [],
+    }
+});
+
+const msgerrors = ref([]);
 
 const dataProducto = ref([]);
-const searchproducto = ref(null);
+const searchproducto = ref('');
 const banderaproducto = ref(false);
 const Cantidad = ref('');
 const producto_id = ref(null); 
 
-const visibleRight = ref(false);
+const dataCompra = ref([]);
+const searchcompra = ref('');
+const banderacompra = ref(false);
+
+const dataArea = ref([]);
+const searcharea = ref('');
+const banderaarea = ref(false);
+
 const showspinner = ref(true);
 const btndisabled = ref(false);
 const showmodal = ref(false);
 
-const searchText = ref();
-
-const data = [
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': 'f230fh0g3', 'Name': 'Bamboo Watch',	'Category': 'Accessories', 'Quantity' : '24'},
-        {'Code': '123456', 'Name': 'Juan',	'Category': 'Accessories', 'Quantity' : '25'},
-];
-
-const data2 = ref([]);
-
 const size = ref({ label: 'Small', value: 'small' });
 
-const closeModal = () => {
+const closeModal = () => {    
     showmodal.value = false;
+    searchproducto.value = ''
+    searcharea.value = '';
+    searchcompra.value = '';
+    Cantidad.value = '';
+    form.reset();
+    msgerrors.value  = [];
 }
-
-onMounted(() => {    
-    products.value = data;    
-});
 
 const form = useForm({ 
     id: '',
-    NoOrden: '',
-    FechaSalida: '',
-    NoSalida: '',      
-    Area: '',  
-    Quienrecibe: '',
-    imgproduct: '',
+    no_salida: '',
+    fk_no_compra: '',
+    fecha_salida: '',
+    fk_area: '',
+    personal: '',
     Productos: [],
-    Cantidad: '',
 });
 
 const submit = async () => {
+    let timetoast = null;
     showspinner.value = false;
-    btndisabled.value = true;
-    // let resp = await axios.post(route(''), form);
-    // console.log(resp);
+    btndisabled.value = true; 
+    
+    try {
+        let resp = await axios.post(route('store.salida'), form);
+        if (resp.data.result == 1) {
+            showmodal.value = false;            
+            clearTimeout(timetoast);
+            timetoast = setTimeout(() => {
+                showSuccess(resp.data.msg);
+            }, 500);
+            searcharea.value = '';
+            searchcompra.value = '';
+            searchproducto.value = '';
+            showspinner.value = true;
+            btndisabled.value = false;
+            form.reset();
+            router.reload({ only: ['Salidas'] });
+            msgerrors.value  = [];
+        } else {
+            // console.log(resp.data.msg);
+            msgerrors.value = resp.data
+            console.log(msgerrors.value);
+            clearTimeout(timetoast);
+            timetoast = setTimeout(() => {
+                showError(resp.data.msg);
+            }, 500);
+            showspinner.value = true;
+            btndisabled.value = false;
+        }        
+    } catch (error) {
+        showspinner.value = true;
+        btndisabled.value = false;
+        msgerrors.value = error.response.data.errors;
+    }       
 }
 
-const editProduct  = (holis) => {
-    console.log(holis);
+const Edit = () => {
+
 }
 
-/* funcion para realizar busquedas */
-function Search () {    
-    if (searchText.value.trim()) {
-        console.log(searchText)
-        products.value = data2;
-    } else {
-        console.log('no tiene nada')
-        products.value = data;
-    }
+const Delete = () => {
     
 }
+
+const SearchArea = async (newarea) => {
+    if (newarea) {
+        console.log(newarea);
+        try {
+            let resp = await axios.get(route('search.area', newarea));                        
+            dataArea.value = resp.data;
+        } catch (error) {
+            dataArea.value = error.response.data;
+        }
+    } else {
+        dataArea.value = [];
+        form.fk_area = '';
+        banderaarea.value = false;
+    }    
+}
+
+let timeoutarea = null;
+watch(searcharea, (newvalue) => {
+    if (banderaarea.value) return false;
+    
+    clearTimeout(timeoutarea);
+    timeoutarea = setTimeout(() => {
+        SearchArea(newvalue)
+    }, 500);
+});
+
+const handleSelectionArea = (id, text, item) => {
+    banderaarea.value = true;
+    form.fk_area = id;
+    form.personal = item.nombre;
+    searcharea.value = text;
+    dataArea.value = [];
+
+    setTimeout( () => {
+        banderaarea.value = false;
+    }, 100);
+};
+
+const SearchCompra = async (newcompra) => {
+    if (newcompra) {
+        try {
+            let resp = await axios.get(route('search.entradas', newcompra));                        
+            dataCompra.value = resp.data;
+        } catch (error) {
+            dataCompra.value = error.response.data;
+        }
+    } else {
+        dataCompra.value = [];
+        form.fk_no_compra = '';
+        banderacompra.value = false;
+    }    
+}
+
+let timeoutcompra = null;
+watch(searchcompra, (newvalue) => {
+    if (banderacompra.value) return false;
+    
+    clearTimeout(timeoutcompra);
+    timeoutcompra = setTimeout(() => {
+        SearchCompra(newvalue)
+    }, 500);
+});
+
+const handleSelectionCompra = (id, text) => {
+    banderacompra.value = true;
+    form.fk_no_compra = id;
+    searchcompra.value = text;
+    dataCompra.value = []; 
+
+    setTimeout( () => {
+        banderacompra.value = false;
+    }, 100);
+};
 
 const SearchProductos = async (newproduct) => {
     if (newproduct) {
@@ -113,19 +215,6 @@ const handleSelectionProducto = (id, text) => {
     }, 100);
 };
 
-
-const addProduct = () => {
-    if (Cantidad.value === 0 || Cantidad.value  === '' || Cantidad.value < 0) {
-        alert('Agrega una cantidad valida.')
-        return false;
-    }
-    form.Productos.push({ id: producto_id.value, nombre: searchproducto.value, cantidad: Cantidad.value });
-    searchproducto.value = '';
-    Cantidad.value = '';
-    producto_id.value = '';
-    console.log(form.Productos);
-}
-
 let timeoutproduct = null;
 watch(searchproducto, (newvalue) => {
     if (banderaproducto.value) return false;
@@ -138,7 +227,63 @@ watch(searchproducto, (newvalue) => {
 
 const Removeproduct = (index) => {
     console.log(index);
+    form.Productos.splice(index, 1)
 }
+
+const addProduct = () => {
+
+    if (searchproducto.value === '') {
+        alert('Por favor, selecciona un producto antes de agregarlo');
+        return false;
+    }
+
+    if (Cantidad.value === 0 || Cantidad.value  === '' || Cantidad.value < 0) {
+        alert('Agrega una cantidad valida.')
+        return false;
+    }
+
+    const nuevoProducto = {
+        id: producto_id.value,
+        nombre: searchproducto.value,
+        cantidad: Cantidad.value
+    };
+
+    if (indexEdit.value !== null) {
+        form.Productos[indexEdit.value] = { ...nuevoProducto };
+        indexEdit.value = null;
+
+        setTimeout( () => {
+            banderaproducto.value = false;
+        }, 100);
+
+    } else {
+        form.Productos.push(nuevoProducto);        
+    }
+    
+    searchproducto.value = '';
+    Cantidad.value = '';
+    producto_id.value = '';
+
+    
+}
+const indexEdit = ref(null);
+const EditProduct = (index) => {    
+    let producto = form.Productos[index];
+    indexEdit.value = index;
+    producto_id.value = producto.id;
+    Cantidad.value = producto.cantidad;
+    searchproducto.value = producto.nombre;
+    banderaproducto.value = true;
+}
+
+const showSuccess = (msg) => {
+    toast.add({ severity: 'success', summary: 'Success', detail: msg, life: 3000 });
+};
+
+const showError = (msg) => {
+    toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 3000 });
+};
+
 
 </script>
 
@@ -160,22 +305,32 @@ const Removeproduct = (index) => {
                     </div>
                 </PrimaryButton>
             </div>
-            <DataTable :value="products" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
-                <Column field="Code" header="No° Salida"></Column>
-                <Column field="Name" header="No° de compra"></Column>
-                <Column field="Name" header="Fecha de salida"></Column>
-                <Column field="Name" header="Area"></Column>
-                <Column field="Name" header="Personal"></Column>
+            <DataTable :value="Salidas" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+                <Column field="no_salida" header="No° Salida"></Column>
+                <Column field="no_orden" header="No° de compra"></Column>
+                <Column field="fecha_salida" header="Fecha de salida"></Column>
+                <Column field="area" header="Area"></Column>
                 <Column header="Acciones">
                     <template #body="rowdata">
                         <div class="flex gap-2">
-                            <PrimaryButton type="button" @click="editProduct(rowdata.data)">Editar</PrimaryButton>
-                            <PrimaryButton type="button" @click="editProduct(rowdata.data)">Eliminar</PrimaryButton>
+                            <PrimaryButton type="button" @click="Edit(rowdata.data)">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                    <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />
+                                    <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z" />
+                                </svg>
+                            </PrimaryButton>
+                            <DangerButton type="button" @click="Delete(rowdata.data)">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                    <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
+                                </svg>
+                            </DangerButton>
                         </div>
                     </template>
                 </Column>
             </DataTable>
         </div>
+
+        <Toast />
 
         <Modal :show="showmodal" @close="closeModal">
             <!-- Modal header -->
@@ -197,57 +352,61 @@ const Removeproduct = (index) => {
                             id="id"
                             type="hidden"
                             v-model="form.id"
-                        />                    
+                        />
                         <div class="relative">
-                            <InputLabel for="NoOrden" value="No° orden de compra"/>
+                            <InputLabel for="searchcompra" value="No° orden de compra"/>
                             <TextInput
-                                id="NoOrden"
+                                id="searchcompra"
                                 type="search"
                                 class="w-full mt-1"                            
                                 placeholder="Buscar..."
-                                v-model="form.NoOrden"
-                            />
-                            <SearchResult :id="'NoOrden'" :data="data2" :label="'Code'" :text="'Name'" :SelectOption="editProduct" />
+                                v-model="searchcompra"
+                            />                            
+                            <SearchResult :id="'searchcompra'" :data="dataCompra" :label="'id'" :text="'no_orden'" @select="handleSelectionCompra" />
+                            <FieldError :message="msgerrors.fk_no_compra" />
                         </div>
                         <div>
-                            <InputLabel for="NoSalida" value="No° de salida"/>
+                            <InputLabel for="no_salida" value="No° de salida"/>
                             <TextInput
-                                id="NoSalida"
+                                id="no_salida"
                                 type="text"
-                                class="w-full mt-1"
-                                placeholder="Buscar..."
-                                v-model="form.NoSalida"
+                                class="w-full mt-1"                                
+                                v-model="form.no_salida"
                             />
-                            <SearchResult :id="'NoSalida'" :data="data2" :label="'Code'" :text="'Name'" :SelectOption="editProduct" />
+                            <FieldError :message="msgerrors.no_salida" />
                         </div>
                         <div>
-                            <InputLabel for="FechaSalida" value="Fecha de salida"/>
+                            <InputLabel for="fecha_salida" value="Fecha de salida"/>
                             <TextInput
-                                id="FechaSalida"
+                                id="fecha_salida"
                                 type="date"
                                 class="w-full mt-1"
-                                v-model="form.FechaSalida"
+                                v-model="form.fecha_salida"
                             />
+                            <FieldError :message="msgerrors.fecha_salida" />
+
                         </div>                    
                         <div class="relative">
-                            <InputLabel for="Area" value="Area"/>
+                            <InputLabel for="searcharea" value="Area"/>
                             <TextInput
-                                id="Area"
+                                id="searcharea"
                                 type="search"
                                 class="w-full mt-1"
                                 placeholder="Buscar..."
-                                v-model="form.Area"
+                                v-model="searcharea"
                             />
-                            <SearchResult :id="'Area'" :data="data2" :label="'Code'" :text="'Name'" :SelectOption="editProduct" />
+                            <SearchResult :id="'searcharea'" :data="dataArea" :label="'id'" :text="'area'" @select="handleSelectionArea" />
+                            <FieldError :message="msgerrors.fk_area" />
                         </div>                    
                         <div>
-                            <InputLabel for="Quienrecibe" value="Quien recibio"/>
+                            <InputLabel for="personal" value="Quien recibio"/>
                             <TextInput
-                                id="Quienrecibe"
+                                id="personal"
                                 type="text"
                                 class="w-full mt-1"
-                                v-model="form.Quienrecibe"
+                                v-model="form.personal"
                             />
+                            <FieldError :message="msgerrors.personal" />
                         </div>                        
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -259,8 +418,8 @@ const Removeproduct = (index) => {
                                 class="w-full mt-1"                            
                                 placeholder="Buscar..."
                                 v-model="searchproducto"
-                            />
-                            <SearchResult :id="'searchproducto'" :data="dataProducto" :label="'id'" :text="'nombre'" @select="handleSelectionProducto" />
+                            />                            
+                            <SearchResult :id="'searchproducto'" :data="dataProducto" :label="'id'" :text="'nombre'" @select="handleSelectionProducto" />                            
                         </div>
                         <div class="flex items-end gap-1 justify-between">
                             <div class="flex-1">
@@ -281,6 +440,8 @@ const Removeproduct = (index) => {
                                 </div>
                             </PrimaryButton>
                         </div>                        
+                        <FieldError :message="msgerrors.Productos" />
+                        <FieldError :message="msgerrors.msg" :textcolor="'text-blue-600'" />
                     </div>
                     <div>
                         <h3 class="mb-3 font-bold text-md">Productos agregados</h3>
@@ -296,11 +457,19 @@ const Removeproduct = (index) => {
                                             <td class="px-6 py-2">{{ item.nombre }}</td>
                                             <td class="px-6 py-2">{{ item.cantidad }}</td>
                                             <td class="px-6 py-2">
-                                                <button type="button" class="hover:text-red-700" @click="Removeproduct(index)">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-5">
-                                                        <path fill-rule="evenodd" d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.285a1.5 1.5 0 0 0 1.493-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25Zm2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75h-1.5ZM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6Zm3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5a.75.75 0 0 1 .786-.711Z" clip-rule="evenodd" />
-                                                    </svg>
-                                                </button>
+                                                <div class="flex gap-5">
+                                                    <button type="button" class="hover:text-red-700" @click="Removeproduct(index)">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-5">
+                                                            <path fill-rule="evenodd" d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.285a1.5 1.5 0 0 0 1.493-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25Zm2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75h-1.5ZM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6Zm3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5a.75.75 0 0 1 .786-.711Z" clip-rule="evenodd" />
+                                                        </svg>
+                                                    </button>
+                                                    <button type="button" class="hover:text-blue-700" @click="EditProduct(index)">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
+                                                            <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
+                                                            <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -324,6 +493,8 @@ const Removeproduct = (index) => {
                 </div>        
             </form>                 
         </Modal>
+
+        
         
     </AuthenLayout>
 </template>
