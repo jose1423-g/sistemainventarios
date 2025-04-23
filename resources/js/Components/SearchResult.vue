@@ -31,7 +31,7 @@ const handleSelect = (id, text, item) => {
 </script>
 <template>
 
-    <ul :id="id" v-if="data.length" class="absolute z-30 w-full py-1 list-none bg-white border rounded-sm shadow-sm max-h-[15rem] overflow-y-auto">
+    <ul :id="id" v-if="data.length" class="absolute z-30 w-full py-1 list-none bg-white border rounded-sm shadow-sm max-h-[15rem] overflow-y-auto mt-[.1rem]">
         <li class="px-2 py-1 cursor-pointer hover:bg-gray-300" v-for="item in data" @click="handleSelect(item[label], item[text], item)">{{ item[text] }}</li>
     </ul>
     

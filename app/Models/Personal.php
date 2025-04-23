@@ -10,7 +10,6 @@ class Personal extends Model
 
     protected $fillable = [
         'nombre',
-        'area',
         'activo'
     ];
 }
