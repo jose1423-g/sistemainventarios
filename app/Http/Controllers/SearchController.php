@@ -12,9 +12,24 @@ class SearchController extends Controller
 {
     public function SearchArea ($name) {
         try {
-            $areas = Areas::where('area', 'LIKE',  "%$name%")->get();
+            $areas = Areas::from('areas as t1')
+            ->leftJoin('personal_area as t2', 't1.id', '=', 't2.fk_area')
+            ->leftJoin('personal as t3', 't2.fk_personal', '=', 't3.id')
+            ->select(
+                't1.id',
+                't1.area',
+                't3.nombre',
+            )
+            ->where('t1.area', 'LIKE',  "%$name%")->get();
+
+            if ($areas->isEmpty()) {
+                return response()->json([['id' => '', 'area' => 'No se encontraron resultados..']], 404); // O lo que desees hacer si no se encuentra nada
+            }
+
             return $areas;    
+
         } catch (\Throwable $th) {
+            return $th;
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);
         }
     }    

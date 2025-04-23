@@ -9,7 +9,7 @@ import Select from '@/Components/Select.vue';
 import SearchResult from '@/Components/SearchResult.vue';
 import FieldError from '@/Components/FieldError.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -25,6 +25,8 @@ const btndisabled = ref(false);
 const msgerrors = ref([]);
 
 const dataArea = ref([]);
+const searcharea = ref('');
+const banderaarea = ref(false);
 
 const size = ref({ label: 'Small', value: 'small' });
 const EsActivo = [{'id': 1, 'descripcion': 'Activa'}, {'id': 0, 'descripcion': 'Desactivada'}]
@@ -43,7 +45,7 @@ defineProps({
 const form = useForm({ 
     id: '',
     nombre: '',
-    searcharea: '',
+    fk_area: '',
     activo: 1,
     fk_area: '',
 });
@@ -57,8 +59,10 @@ const submit = async () => {
             showSuccess(resp.data.msg)
             showspinner.value = true;
             btndisabled.value = false;
-            form.reset('id', 'nombre', 'fk_area', 'searcharea');
-            router.reload({ only: ['personal'] });
+            form.reset('id', 'nombre', 'fk_area');
+            searcharea.value = '';
+            visibleRight.value = false;
+            router.reload({ only: ['Personal'] });
         } else {
             showError(resp.data.msg)
             showspinner.value = true;
@@ -86,34 +90,39 @@ const Edit = async (data) => {
             showError(resp.data.msg);
         } else {
             visibleRight.value = true;
-            // Usar personal_id en lugar de id
-            form.id = resp.data.personal_id || '';            
-            form.nombre = resp.data.nombre || '';
-            form.fk_area = resp.data.fk_area || '';
-            form.searcharea = resp.data.area || '';
-            form.activo = resp.data.activo !== undefined ? resp.data.activo : 1;
+            form.id = resp.data.id;
+            form.nombre = resp.data.nombre;
+            form.fk_area = resp.data.area_id;
+            form.searcharea = resp.data.area;
+            form.activo = resp.data.activo;
         }
 }
 
 const Delete  = async (data) => {
     
-    let resp = await axios.delete(route('delete.personal', data.id));    
-    
+    if (confirm('¿Estas seguro de eliminar este registro?')) {
+
+        let resp = await axios.delete(route('delete.personal', data.id));    
         if (resp.data.result == 1) {
             showSuccess(resp.data.msg)
             router.reload({ only: ['personal'] });
         } else {
             showError(resp.data.msg);            
         }
+
+    } else {        
+        return false;
+    }
+    
 }
 
-const SearchArea = async () => {
-    if (form.searcharea.trim()) {
+const SearchArea = async (newarea) => {
+    if (newarea) {
         try {
-            let resp = await axios.get(route('search.area', form.searcharea));            
+            let resp = await axios.get(route('search.area', newarea));
             dataArea.value = resp.data;
         } catch (error) {
-            showError(resp.data.msg);
+            dataArea.value = error.response.data;
         }        
     } else {
         dataArea.value = [];
@@ -121,14 +130,30 @@ const SearchArea = async () => {
     }    
 }
 
-const handleSelection = (id, text) => {    
+let timeoutarea = null;
+watch(searcharea, (newvalue) => {
+    if (banderaarea.value) return false;
+
+    clearTimeout(timeoutarea);
+    timeoutarea = setTimeout(() => {
+        SearchArea(newvalue)
+    }, 500);
+});
+
+const handleSelection = (id, text) => { 
+    banderaarea.value = true;   
     form.fk_area = id;
-    form.searcharea = text;
+    searcharea.value = text;
     dataArea.value = [];
+
+    setTimeout( () => {
+        banderaarea.value = false;
+    }, 100);
 };
 
 const ClearForm = () => {
     form.reset();
+    searcharea.value = '';
     msgerrors.value  = [];
     visibleRight.value = true;
 }
@@ -219,10 +244,9 @@ const ClearForm = () => {
                             type="search"
                             placeholder="Buscar..."
                             class="w-full mt-1"
-                            v-model="form.searcharea"
-                            @input="SearchArea"
+                            v-model="searcharea"
                         />
-                        <SearchResult v-if="form.searcharea" :data="dataArea" :id="'searcharea'" :label="'id'" :text="'area'" @select="handleSelection"/>
+                        <SearchResult v-if="searcharea" :data="dataArea" :id="'searcharea'" :label="'id'" :text="'area'" @select="handleSelection"/>
                         <FieldError :message="msgerrors.fk_area" />
                     </div>                    
                     <TextInput

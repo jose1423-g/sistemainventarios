@@ -107,8 +107,20 @@ const submit = async () => {
     }       
 }
 
-const Edit = () => {
-
+const Edit = async (data) => {
+    console.log(data.id);
+    let resp = await axios.get(route('edit.salida', data.id));
+    console.log(resp);
+    // if (resp.data.result == 0) {
+    //     showError(resp.data.msg);
+    // } else {
+    //     visibleRight.value = true;
+    //     form.id = resp.data.id;            
+    //     form.nombre = resp.data.nombre;
+    //     form.area = resp.data.area_id;
+    //     form.searcharea = resp.data.area;
+    //     form.activo = resp.data.activo;
+    // }
 }
 
 const Delete = () => {
