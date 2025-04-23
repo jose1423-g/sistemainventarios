@@ -99,36 +99,46 @@ class SalidaController extends Controller
 
             return response()->json(['result' => 1, 'msg' => 'Salida creada con exito']);
 
-        } catch (\Throwable $th) {  
-            return $th;
+        } catch (\Throwable $th) {
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
         }       
     }   
     
     public function Edit ($id) {
 
-        $salidas = Salidas::from('salidas as t1')
-        ->leftJoin('areas as t2', 't1.fk_area', '=', 't2.id')
-        ->leftJoin('entradas as t3', 't1.fk_no_compra', '=', 't3.id')
-        ->select(
-            't1.id',
-            't1.no_salida',
-            't3.no_orden',
-            't1.fecha_salida',
-            't2.area',
-        )
-        ->get();
+        try {
 
-        $producto_salida = Salidas::from('salidas as t1')
-        ->leftJoin('producto_salida as t2', 't1.id', '=', 't2.fk_salida')
-        ->leftJoin('productos as t3', 't2.fk_producto', '=', 't3.id')
-        ->select(
-            't2.fk_producto',
-            't2.cantidad',
-            't3.nombre',
-        )
-        ->get();
+            $salida = Salidas::from('salidas as t1')
+            ->leftJoin('areas as t2', 't1.fk_area', '=', 't2.id')
+            ->leftJoin('entradas as t3', 't1.fk_no_compra', '=', 't3.id')
+            ->select(
+                't1.id',
+                't1.no_salida',
+                't3.id as id_orden',
+                't3.no_orden',
+                't1.fecha_salida',
+                't2.id as id_area',
+                't2.area',
+            )->where('t1.id', $id)
+            ->get();
+    
+            $producto_salida = Salidas::from('salidas as t1')
+            ->leftJoin('producto_salida as t2', 't1.id', '=', 't2.fk_salida')
+            ->leftJoin('productos as t3', 't2.fk_producto', '=', 't3.id')
+            ->select(
+                't2.fk_producto',
+                't2.cantidad',
+                't3.nombre',
+            )->where('t2.fk_salida', $id)
+            ->get();
+            
+            return ['salida' => $salida, 'productos_salida' => $producto_salida];
 
+        } catch (\Throwable $th) {
+
+            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
+        }
+        
     }
 
     public function Delete ($id) {
