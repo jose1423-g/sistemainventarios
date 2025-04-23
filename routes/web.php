@@ -75,7 +75,7 @@ Route::middleware('auth')->group(function () {
 
     /* buscador */
     Route::get('/searcharea/{name}', [SearchController::class, 'SearchArea'])->name('search.area');
-    Route::get('/searchordencompra/{name}', [SearchController::class, 'SearchOrdenCompra'])->name('search.ordencompra');
+    Route::get('/searchentradas/{name}', [SearchController::class, 'SearchEntradas'])->name('search.entradas');
     Route::get('/searchpartidas/{name}', [SearchController::class, 'SearchPartidas'])->name('search.partidas');
     Route::get('/searchproductos/{name}', [SearchController::class, 'SearchProductos'])->name('search.productos');
 

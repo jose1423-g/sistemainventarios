@@ -10,11 +10,9 @@ class Salidas extends Model
 
     protected $fillable = [
         'no_salida',
-        'no_compra',
+        'fk_no_compra',
         'fecha_salida',
-        'area',
-        'personal',
-        'producto',
-        'piezas'
+        'fk_area',
+        'personal',                
     ];
 }

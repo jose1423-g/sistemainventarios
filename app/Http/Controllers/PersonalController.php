@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use App\Models\Personal;
+use App\Models\Personal_area;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -10,13 +11,13 @@ class PersonalController extends Controller
     public function Showview () {
 
         $personal = Personal::from('personal as t1')
-        ->leftJoin('areas as t2', 't1.area', '=', 't2.id')
+        ->leftJoin('personal_area as t2', 't1.id', '=', 't2.fk_personal')
+        ->leftJoin('areas as t3', 't2.fk_area', '=', 't3.id')
         ->select(
-            't1.id',
-            't1.nombre',
-            't1.area as area_id',
+            't1.id', 
+            't1.nombre', 
+            't3.area',
             't1.activo',
-            't2.area'
         )
         ->get();
         return Inertia::render('Personal', 
@@ -30,41 +31,57 @@ class PersonalController extends Controller
         
         $request->validate([
             'nombre' => 'required',
-            'area' => 'required',
+            'fk_area' => 'required',
         ],[
             'nombre.required' => 'El campo nombre es obligatorio.',
-            'area.required' => 'El campo area es obligatorio.',
+            'fk_area.required' => 'El campo area es obligatorio.',
         ]);
 
         try {
 
-            Personal::updateOrCreate(
+            $personal = Personal::updateOrCreate(
                 ['id' => $request->id],
                 [
-                    'nombre' => $request->nombre, 
-                    'area' => $request->area,
+                    'nombre' => $request->nombre,
                     'activo' => $request->activo
                 ]
             );
+
+            $personal_area = Personal_area::where('fk_area', $request->fk_area)->first();
+            if ($personal_area) {
+                return response()->json(['result' => 0, 'msg' => 'El area ya esta asignada']);
+            }
+
+            Personal_area::updateOrCreate(
+                [
+                    'fk_personal' => $personal->id,
+                    'fk_area' => $request->fk_area,
+                ],
+                [
+                    'fk_personal' => $personal->id,
+                    'fk_area' => $request->fk_area,
+                ]
+            );
+
             return response()->json(['result' => 1, 'msg' => 'Personal creado con exito']);
 
         } catch (\Throwable $th) {
-            
+            return $th;
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
         }        
     }
     
     public function Edit ($id) {
         try {
-            // $data = Personal::find($id);
             $personal = Personal::from('personal as t1')
-            ->leftJoin('areas as t2', 't1.area', '=', 't2.id')
+            ->leftJoin('personal_area as t2', 't1.id', '=', 't2.fk_personal')
+            ->leftJoin('areas as t3', 't2.fk_area', '=', 't3.id')
             ->select(
                 't1.id',
                 't1.nombre',
-                't1.area as area_id',
+                't3.id as area_id',
                 't1.activo',
-                't2.area'
+                't3.area'
             )
             ->where('t1.id', $id)
             ->first();
@@ -77,6 +94,8 @@ class PersonalController extends Controller
 
     public function Delete ($id) {
         try {            
+            
+            Personal_area::where('fk_personal', $id)->delete();
             Personal::destroy($id);
             return response()->json(['result' => 1, 'msg' => 'Personal Eliminado con exito']);
         } catch (\Throwable $th) {

@@ -9,7 +9,7 @@ import Select from '@/Components/Select.vue';
 import SearchResult from '@/Components/SearchResult.vue';
 import FieldError from '@/Components/FieldError.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -25,6 +25,8 @@ const btndisabled = ref(false);
 const msgerrors = ref([]);
 
 const dataArea = ref([]);
+const searcharea = ref('');
+const banderaarea = ref(false);
 
 const size = ref({ label: 'Small', value: 'small' });
 const EsActivo = [{'id': 1, 'descripcion': 'Activa'}, {'id': 0, 'descripcion': 'Desactivada'}]
@@ -39,8 +41,7 @@ defineProps({
 const form = useForm({ 
     id: '',
     nombre: '',
-    searcharea: '',
-    area: '',
+    fk_area: '',
     activo: 1,
 });
 
@@ -53,7 +54,9 @@ const submit = async () => {
             showSuccess(resp.data.msg)
             showspinner.value = true;
             btndisabled.value = false;
-            form.reset('id', 'nombre', 'area', 'searcharea');
+            form.reset('id', 'nombre', 'fk_area');
+            searcharea.value = '';
+            visibleRight.value = false;
             router.reload({ only: ['Personal'] });
         } else {
             showError(resp.data.msg)
@@ -82,9 +85,9 @@ const Edit = async (data) => {
             showError(resp.data.msg);
         } else {
             visibleRight.value = true;
-            form.id = resp.data.id;            
+            form.id = resp.data.id;
             form.nombre = resp.data.nombre;
-            form.area = resp.data.area_id;
+            form.fk_area = resp.data.area_id;
             form.searcharea = resp.data.area;
             form.activo = resp.data.activo;
         }
@@ -92,23 +95,29 @@ const Edit = async (data) => {
 
 const Delete  = async (data) => {
     
-    let resp = await axios.delete(route('delete.personal', data.id));    
-    
+    if (confirm('¿Estas seguro de eliminar este registro?')) {
+
+        let resp = await axios.delete(route('delete.personal', data.id));    
         if (resp.data.result == 1) {
             showSuccess(resp.data.msg)
             router.reload({ only: ['Personal'] });
         } else {
             showError(resp.data.msg);            
         }
+
+    } else {        
+        return false;
+    }
+    
 }
 
-const SearchArea = async () => {
-    if (form.searcharea.trim()) {
+const SearchArea = async (newarea) => {
+    if (newarea) {
         try {
-            let resp = await axios.get(route('search.area', form.searcharea));            
+            let resp = await axios.get(route('search.area', newarea));
             dataArea.value = resp.data;
         } catch (error) {
-            showError(resp.data.msg);
+            dataArea.value = error.response.data;
         }        
     } else {
         dataArea.value = [];
@@ -116,14 +125,30 @@ const SearchArea = async () => {
     }    
 }
 
-const handleSelection = (id, text) => {    
-    form.area = id;
-    form.searcharea = text;
+let timeoutarea = null;
+watch(searcharea, (newvalue) => {
+    if (banderaarea.value) return false;
+
+    clearTimeout(timeoutarea);
+    timeoutarea = setTimeout(() => {
+        SearchArea(newvalue)
+    }, 500);
+});
+
+const handleSelection = (id, text) => { 
+    banderaarea.value = true;   
+    form.fk_area = id;
+    searcharea.value = text;
     dataArea.value = [];
+
+    setTimeout( () => {
+        banderaarea.value = false;
+    }, 100);
 };
 
 const ClearForm = () => {
     form.reset();
+    searcharea.value = '';
     msgerrors.value  = [];
     visibleRight.value = true;
 }
@@ -214,11 +239,10 @@ const ClearForm = () => {
                             type="search"
                             placeholder="Buscar..."
                             class="w-full mt-1"
-                            v-model="form.searcharea"
-                            @input="SearchArea"
+                            v-model="searcharea"
                         />
-                        <SearchResult :data="dataArea" :id="'searcharea'" :label="'id'" :text="'area'" @select="handleSelection"/>
-                        <FieldError :message="msgerrors.area" />
+                        <SearchResult v-if="searcharea" :data="dataArea" :id="'searcharea'" :label="'id'" :text="'area'" @select="handleSelection"/>
+                        <FieldError :message="msgerrors.fk_area" />
                     </div>                    
                     <TextInput
                         id="area"
