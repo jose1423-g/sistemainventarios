@@ -32,10 +32,14 @@ const size = ref({ label: 'Small', value: 'small' });
 const EsActivo = [{'id': 1, 'descripcion': 'Activa'}, {'id': 0, 'descripcion': 'Desactivada'}]
 
 defineProps({
-    Personal: {
+    personal: {
         type: Array,
         default: []
-    }, 
+    },
+    areas: {
+        type: Array,
+        default: []
+    }
 });
 
 const form = useForm({ 
@@ -43,6 +47,7 @@ const form = useForm({
     nombre: '',
     fk_area: '',
     activo: 1,
+    fk_area: '',
 });
 
 const submit = async () => {
@@ -100,7 +105,7 @@ const Delete  = async (data) => {
         let resp = await axios.delete(route('delete.personal', data.id));    
         if (resp.data.result == 1) {
             showSuccess(resp.data.msg)
-            router.reload({ only: ['Personal'] });
+            router.reload({ only: ['personal'] });
         } else {
             showError(resp.data.msg);            
         }
@@ -121,7 +126,7 @@ const SearchArea = async (newarea) => {
         }        
     } else {
         dataArea.value = [];
-        form.area = '';
+        form.fk_area = '';
     }    
 }
 
@@ -174,7 +179,7 @@ const ClearForm = () => {
                     </div>
                 </PrimaryButton>
             </div>
-            <DataTable :value="Personal" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+            <DataTable :value="personal" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                 <Column field="nombre" header="Nombre"></Column>
                 <Column field="area" header="Area"></Column>
                 <Column header="Activo">
@@ -247,7 +252,7 @@ const ClearForm = () => {
                     <TextInput
                         id="area"
                         type="hidden"
-                        v-model="form.area"
+                        v-model="form.fk_area"
                     />                      
                     <div>
                         <InputLabel for="activo" value="Activo"/>

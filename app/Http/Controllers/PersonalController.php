@@ -20,11 +20,7 @@ class PersonalController extends Controller
             't1.activo',
         )
         ->get();
-        return Inertia::render('Personal', 
-            [
-                'Personal' => $personal
-            ]
-        );
+        return Inertia::render('Personal', ['personal' => $personal, 'areas' => $areas]);
     }
 
     public function Store (Request $request) {        
@@ -83,7 +79,7 @@ class PersonalController extends Controller
                 't1.activo',
                 't3.area'
             )
-            ->where('t1.id', $id)
+            ->where('t2.id', $id)
             ->first();
             return $personal;
         } catch (\Throwable $th) {
