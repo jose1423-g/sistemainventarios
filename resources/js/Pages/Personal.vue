@@ -30,18 +30,22 @@ const size = ref({ label: 'Small', value: 'small' });
 const EsActivo = [{'id': 1, 'descripcion': 'Activa'}, {'id': 0, 'descripcion': 'Desactivada'}]
 
 defineProps({
-    Personal: {
+    personal: {
         type: Array,
         default: []
-    }, 
+    },
+    areas: {
+        type: Array,
+        default: []
+    }
 });
 
 const form = useForm({ 
     id: '',
     nombre: '',
     searcharea: '',
-    area: '',
     activo: 1,
+    fk_area: '',
 });
 
 const submit = async () => {
@@ -53,8 +57,8 @@ const submit = async () => {
             showSuccess(resp.data.msg)
             showspinner.value = true;
             btndisabled.value = false;
-            form.reset('id', 'nombre', 'area', 'searcharea');
-            router.reload({ only: ['Personal'] });
+            form.reset('id', 'nombre', 'fk_area', 'searcharea');
+            router.reload({ only: ['personal'] });
         } else {
             showError(resp.data.msg)
             showspinner.value = true;
@@ -82,11 +86,12 @@ const Edit = async (data) => {
             showError(resp.data.msg);
         } else {
             visibleRight.value = true;
-            form.id = resp.data.id;            
-            form.nombre = resp.data.nombre;
-            form.area = resp.data.area_id;
-            form.searcharea = resp.data.area;
-            form.activo = resp.data.activo;
+            // Usar personal_id en lugar de id
+            form.id = resp.data.personal_id || '';            
+            form.nombre = resp.data.nombre || '';
+            form.fk_area = resp.data.fk_area || '';
+            form.searcharea = resp.data.area || '';
+            form.activo = resp.data.activo !== undefined ? resp.data.activo : 1;
         }
 }
 
@@ -96,7 +101,7 @@ const Delete  = async (data) => {
     
         if (resp.data.result == 1) {
             showSuccess(resp.data.msg)
-            router.reload({ only: ['Personal'] });
+            router.reload({ only: ['personal'] });
         } else {
             showError(resp.data.msg);            
         }
@@ -112,12 +117,12 @@ const SearchArea = async () => {
         }        
     } else {
         dataArea.value = [];
-        form.area = '';
+        form.fk_area = '';
     }    
 }
 
 const handleSelection = (id, text) => {    
-    form.area = id;
+    form.fk_area = id;
     form.searcharea = text;
     dataArea.value = [];
 };
@@ -149,7 +154,7 @@ const ClearForm = () => {
                     </div>
                 </PrimaryButton>
             </div>
-            <DataTable :value="Personal" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+            <DataTable :value="personal" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                 <Column field="nombre" header="Nombre"></Column>
                 <Column field="area" header="Area"></Column>
                 <Column header="Activo">
@@ -218,12 +223,12 @@ const ClearForm = () => {
                             @input="SearchArea"
                         />
                         <SearchResult v-if="form.searcharea" :data="dataArea" :id="'searcharea'" :label="'id'" :text="'area'" @select="handleSelection"/>
-                        <FieldError :message="msgerrors.area" />
+                        <FieldError :message="msgerrors.fk_area" />
                     </div>                    
                     <TextInput
                         id="area"
                         type="hidden"
-                        v-model="form.area"
+                        v-model="form.fk_area"
                     />                      
                     <div>
                         <InputLabel for="activo" value="Activo"/>
