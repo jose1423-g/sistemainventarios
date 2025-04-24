@@ -89,10 +89,14 @@ const submit = async () => {
             form.reset();
             router.reload({ only: ['Salidas'] });
             msgerrors.value  = [];
-        } else {
-            // console.log(resp.data.msg);
-            msgerrors.value = resp.data
-            console.log(msgerrors.value);
+        } else {            
+            if (resp.data.result == 3) {
+                msgerrors.value = resp.data
+                showspinner.value = true;
+                btndisabled.value = false;
+                return false;
+            }
+            
             clearTimeout(timetoast);
             timetoast = setTimeout(() => {
                 showError(resp.data.msg);
@@ -108,28 +112,60 @@ const submit = async () => {
 }
 
 const Edit = async (data) => {
-    console.log(data.id);
     let resp = await axios.get(route('edit.salida', data.id));
-    console.log(resp);
-    // if (resp.data.result == 0) {
-    //     showError(resp.data.msg);
-    // } else {
-    //     visibleRight.value = true;
-    //     form.id = resp.data.id;            
-    //     form.nombre = resp.data.nombre;
-    //     form.area = resp.data.area_id;
-    //     form.searcharea = resp.data.area;
-    //     form.activo = resp.data.activo;
-    // }
+    if (resp.data.result == 0) {
+        showError(resp.data.msg);
+    } else {
+        showmodal.value = true;
+        form.id = resp.data.salida.id;
+        form.no_salida = resp.data.salida.no_salida;
+        form.fk_no_compra = resp.data.salida.id_orden;
+        searchcompra.value = resp.data.salida.no_orden;
+        form.fecha_salida = resp.data.salida.fecha_salida;
+        form.fk_area = resp.data.salida.id_area;
+        searcharea.value = resp.data.salida.area
+        form.personal = resp.data.salida.personal;
+
+        let dataproductos = resp.data.productos_salida;
+
+        dataproductos.forEach(element => {
+            let nuevoProducto = {
+                id: element.fk_producto,
+                nombre: element.nombre,
+                cantidad: element.cantidad
+            };
+            form.Productos.push(nuevoProducto);     
+        });
+        
+        banderacompra.value = true;
+        banderaarea.value = true;
+        setTimeout( () => {                    
+            banderacompra.value = false;
+            banderaarea.value = false;
+        }, 100);
+    }
 }
 
-const Delete = () => {
-    
+const Delete = async (data) => {
+
+    if (confirm('¿Estas seguro de eliminar este registro?')) {
+
+        let resp = await axios.delete(route('delete.salida', data.id));
+        
+        if (resp.data.result == 1) {
+            showSuccess(resp.data.msg)
+            router.reload({ only: ['Salidas'] });
+        } else {
+            showError(resp.data.msg);            
+        }
+
+    } else {        
+        return false;
+    }
 }
 
 const SearchArea = async (newarea) => {
     if (newarea) {
-        console.log(newarea);
         try {
             let resp = await axios.get(route('search.area', newarea));                        
             dataArea.value = resp.data;
@@ -238,7 +274,6 @@ watch(searchproducto, (newvalue) => {
 });
 
 const Removeproduct = (index) => {
-    console.log(index);
     form.Productos.splice(index, 1)
 }
 
@@ -459,33 +494,34 @@ const showError = (msg) => {
                         <h3 class="mb-3 font-bold text-md">Productos agregados</h3>
                         <div class="relative overflow-x-auto">
                             <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 overflow-y-auto list-none border border-gray-200 rounded-md">
-                                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                    <tr>
                                         <th class="px-6 py-2">Producto</th>
                                         <th class="px-6 py-2">Cantidad</th>
                                         <th class="px-6 py-2">Accion</th>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="(item, index ) in form.Productos" :key="index" class="bg-white border-b border-gray-200">
-                                            <td class="px-6 py-2">{{ item.nombre }}</td>
-                                            <td class="px-6 py-2">{{ item.cantidad }}</td>
-                                            <td class="px-6 py-2">
-                                                <div class="flex gap-5">
-                                                    <button type="button" class="hover:text-red-700" @click="Removeproduct(index)">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-5">
-                                                            <path fill-rule="evenodd" d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.285a1.5 1.5 0 0 0 1.493-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25Zm2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75h-1.5ZM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6Zm3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5a.75.75 0 0 1 .786-.711Z" clip-rule="evenodd" />
-                                                        </svg>
-                                                    </button>
-                                                    <button type="button" class="hover:text-blue-700" @click="EditProduct(index)">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
-                                                            <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
-                                                            <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                <!-- </li> -->
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(item, index ) in form.Productos" :key="index" class="bg-white border-b border-gray-200">
+                                        <td class="px-6 py-2">{{ item.nombre }}</td>
+                                        <td class="px-6 py-2">{{ item.cantidad }}</td>
+                                        <td class="px-6 py-2">
+                                            <div class="flex gap-5">
+                                                <button type="button" class="hover:text-red-700" @click="Removeproduct(index)">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-5">
+                                                        <path fill-rule="evenodd" d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.285a1.5 1.5 0 0 0 1.493-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25Zm2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75h-1.5ZM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6Zm3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5a.75.75 0 0 1 .786-.711Z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="hover:text-blue-700" @click="EditProduct(index)">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
+                                                        <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
+                                                        <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>                                
                             </table>
                         </div>
                     </div>

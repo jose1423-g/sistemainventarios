@@ -66,7 +66,7 @@ class SalidaController extends Controller
                     $new_cantidad = abs($stock - $cantidad);
                     Productos::where('id', $value['id'])->update(['stock' => $new_cantidad]);
                 } else {
-                    return response()->json(['result' => 0, 'msg' => 'El producto "'.$value['nombre'].'" no cuenta con sufiente stock']);
+                    return response()->json(['result' => 3, 'msg' => 'El producto "'.$value['nombre'].'" no cuenta con sufiente stock']);
                 }
                 
             }
@@ -119,8 +119,9 @@ class SalidaController extends Controller
                 't1.fecha_salida',
                 't2.id as id_area',
                 't2.area',
+                't1.personal'
             )->where('t1.id', $id)
-            ->get();
+            ->first();
     
             $producto_salida = Salidas::from('salidas as t1')
             ->leftJoin('producto_salida as t2', 't1.id', '=', 't2.fk_salida')
@@ -141,6 +142,18 @@ class SalidaController extends Controller
         
     }
 
-    public function Delete ($id) {
+    public function Delete ($id) { 
+        
+        try {            
+                    
+            Producto_salida::where('fk_salida', $id)->delete();
+            Salidas::destroy($id);
+
+            return response()->json(['result' => 1, 'msg' => 'Salida Eliminada con exito']);
+
+        } catch (\Throwable $th) {
+            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
+        }
+        
     }
 }
