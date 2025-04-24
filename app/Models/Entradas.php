@@ -17,6 +17,7 @@ class Entradas extends Model
         'numero_requisicion',
         'cantidad_piezas',
         'precio_unitario',
-        'IVA'
+        'IVA',
+        'total',
     ];
 }

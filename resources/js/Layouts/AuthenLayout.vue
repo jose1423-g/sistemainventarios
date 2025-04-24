@@ -136,14 +136,16 @@
                             Personal
                     </ResponsiveNavLink>
                 </li>
-                <li>
-                    <ResponsiveNavLink
-                            :href="route('usuarios')"
-                            :active="route().current('usuarios')"
-                        >
-                            Usuarios
-                    </ResponsiveNavLink>
-                </li>
+                <template v-if="$page.props.role.role_user.role == 'Admin'">
+                    <li>
+                        <ResponsiveNavLink
+                                :href="route('usuarios')"
+                                :active="route().current('usuarios')"
+                            >
+                                Usuarios
+                        </ResponsiveNavLink>
+                    </li>
+                </template>
             </ul>
         </div>                
     </aside>

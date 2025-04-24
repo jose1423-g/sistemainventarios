@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Models\Roles;
 use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
@@ -38,6 +39,14 @@ class HandleInertiaRequests extends Middleware
             'ziggy' => fn () => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
+            ],
+            'role' => fn () => [
+                'role_user' => $request->user() ? Roles::from('roles as t1')
+                ->leftJoin('rol_usuario as t2', 't1.id', '=', 't2.fk_rol')
+                ->select(
+                    't1.nombre_rol as role',
+                )
+                ->where('t2.fk_usuario', $request->user()->id)->first() : null,
             ],
         ];
     }

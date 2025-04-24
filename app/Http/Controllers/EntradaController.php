@@ -43,7 +43,7 @@ class EntradaController extends Controller
             'cantidad_piezas' => 'required',
             'precio_unitario' => 'required',
             'IVA' => 'required',
-            'Total' => 'required',
+            'total' => 'required',
         ],[
             'no_orden.required' => 'El campo No° orden de compra es obligatorio.',
             'proveedor.required' => 'El campo proveedor es obligatorio.',
@@ -53,7 +53,7 @@ class EntradaController extends Controller
             'cantidad_piezas.required' => 'El campo Cantidad/piezas es obligatorio.',
             'precio_unitario.required' => 'El campo Precio unitario es obligatorio.',
             'IVA.required' => 'El campo IVA es obligatorio.',
-            'Total.required' => 'El campo Total es obligatorio.',
+            'total.required' => 'El campo Total es obligatorio.',
         ]);
 
         try {
@@ -70,7 +70,7 @@ class EntradaController extends Controller
                     'cantidad_piezas' => $request->cantidad_piezas,
                     'precio_unitario' => $request->precio_unitario,
                     'IVA' => $request->IVA,
-                    'Total' => $request->Total
+                    'total' => $request->total
                 ]
             );
             return response()->json(['result' => 1, 'msg' => 'Entrada creada con exito']);
@@ -96,7 +96,7 @@ class EntradaController extends Controller
                 't1.cantidad_piezas',
                 't1.precio_unitario',
                 't1.IVA',
-                // 't1.Total',
+                't1.total',
                 't2.area',
             )
             ->where('t1.id', $id)
