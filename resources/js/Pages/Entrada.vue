@@ -8,7 +8,7 @@ import TextInput from '@/Components/TextInput.vue';
 import SearchResult from '@/Components/SearchResult.vue';
 import FieldError from '@/Components/FieldError.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
-import {ref} from 'vue';
+import {ref, watch} from 'vue';
 
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -25,6 +25,9 @@ const btndisabled = ref(false);
 const dataArea = ref([]);
 const msgerrors = ref([]);
 
+const searcharea = ref(''); 
+const banderaarea = ref(false);
+
 const size = ref({ label: 'Small', value: 'small' });
 
 defineProps({
@@ -38,8 +41,7 @@ const form = useForm({
     no_orden: '',
     proveedor: '',
     fecha_compra: '',
-    fecha_entrada: '', 
-    searcharea: '',
+    fecha_entrada: '',
     area_solicitante: '',
     numero_requisicion: '',
     cantidad_piezas: '',
@@ -124,30 +126,47 @@ const Delete  = async (data) => {
     }
 }
 
-const SearchArea = async () => {
-    if (form.searcharea.trim()) {
+const SearchArea = async (timeouarea) => {
+    if (timeouarea) {
         try {
-            let resp = await axios.get(route('search.area', form.searcharea));            
+            let resp = await axios.get(route('search.area', timeouarea));            
             dataArea.value = resp.data;
         } catch (error) {
-            showError(resp.data.msg);
-        }        
+            dataArea.value = error.response.data;
+        }
     } else {
         dataArea.value = [];
-        form.area = '';
+        form.area_solicitante = '';
+        banderaarea.value = false;
     }    
 }
 
-const handleSelection = (id, text) => {    
+const handleSelectionarea = (id, text) => {  
+    banderaarea.value = true;  
     form.area_solicitante = id;
-    form.searcharea = text;
+    searcharea.value = text;
     dataArea.value = [];
+
+    setTimeout( () => {
+        banderaarea.value = false;
+    }, 100);
 };
+
+let timeouarea = null;
+watch(searcharea, (newvalue) => {
+    if (banderaarea.value) return false;
+    
+    clearTimeout(timeouarea);
+    timeouarea = setTimeout(() => {
+        SearchArea(newvalue)
+    }, 500);
+});
 
 const ClearForm = () => {
     form.reset();
     msgerrors.value  = [];
     visibleRight.value = true;
+    searcharea.value = '';
 }
 
 </script>
@@ -256,11 +275,10 @@ const ClearForm = () => {
                             type="search"
                             class="w-full mt-1"
                             placeholder="Buscar..."
-                            v-model="form.searcharea"
-                            @input="SearchArea"
+                            v-model="searcharea"
                         />
+                        <SearchResult v-if="searcharea" :id="'searcharea'" :data="dataArea" :label="'id'" :text="'area'" @select="handleSelectionarea" />
                         <FieldError :message="msgerrors.area_solicitante" />
-                        <SearchResult :id="'searcharea'" :data="dataArea" :label="'id'" :text="'area'" @select="handleSelection" />
                     </div>  
                     <TextInput
                         id="area_solicitante"

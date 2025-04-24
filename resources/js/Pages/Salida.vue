@@ -176,7 +176,7 @@ const SearchArea = async (newarea) => {
         dataArea.value = [];
         form.fk_area = '';
         banderaarea.value = false;
-    }    
+    }
 }
 
 let timeoutarea = null;
@@ -413,7 +413,7 @@ const showError = (msg) => {
                                 placeholder="Buscar..."
                                 v-model="searchcompra"
                             />                            
-                            <SearchResult :id="'searchcompra'" :data="dataCompra" :label="'id'" :text="'no_orden'" @select="handleSelectionCompra" />
+                            <SearchResult v-if="searchcompra" :id="'searchcompra'" :data="dataCompra" :label="'id'" :text="'no_orden'" @select="handleSelectionCompra" />
                             <FieldError :message="msgerrors.fk_no_compra" />
                         </div>
                         <div>
@@ -446,7 +446,7 @@ const showError = (msg) => {
                                 placeholder="Buscar..."
                                 v-model="searcharea"
                             />
-                            <SearchResult :id="'searcharea'" :data="dataArea" :label="'id'" :text="'area'" @select="handleSelectionArea" />
+                            <SearchResult v-if="searcharea" :id="'searcharea'" :data="dataArea" :label="'id'" :text="'area'" @select="handleSelectionArea" />
                             <FieldError :message="msgerrors.fk_area" />
                         </div>                    
                         <div>
@@ -470,7 +470,7 @@ const showError = (msg) => {
                                 placeholder="Buscar..."
                                 v-model="searchproducto"
                             />                            
-                            <SearchResult :id="'searchproducto'" :data="dataProducto" :label="'id'" :text="'nombre'" @select="handleSelectionProducto" />                            
+                            <SearchResult v-if="searchproducto" :id="'searchproducto'" :data="dataProducto" :label="'id'" :text="'nombre'" @select="handleSelectionProducto" />                            
                         </div>
                         <div class="flex items-end gap-1 justify-between">
                             <div class="flex-1">
