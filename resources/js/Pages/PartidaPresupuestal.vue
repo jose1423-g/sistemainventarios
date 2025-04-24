@@ -86,13 +86,18 @@ const Edit  = async (data) =>{
 }
 
 const Delete = async (data) =>{
-    let resp = await axios.delete(route('delete.partida', data.id));
+    if (confirm('¿Estas seguro de eliminar este registro?')) {
 
-    if(resp.data.result == 1){
-        showSuccess(resp.data.msg);
-        router.reload({only:['partida']});
-    }else{
-        showError(resp.data.msg);
+        let resp = await axios.delete(route('delete.partida', data.id));
+        
+        if(resp.data.result == 1){
+            showSuccess(resp.data.msg);
+            router.reload({only:['partida']});
+        }else{
+            showError(resp.data.msg);
+        }
+    } else {
+        return false;
     }
 }
 

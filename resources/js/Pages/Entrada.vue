@@ -109,7 +109,9 @@ const Edit = async (data) => {
 
 const Delete  = async (data) => {
     
-    let resp = await axios.delete(route('delete.entrada', data.id));    
+    if (confirm('¿Estas seguro de eliminar este registro?')) {
+
+        let resp = await axios.delete(route('delete.entrada', data.id));    
     
         if (resp.data.result == 1) {
             showSuccess(resp.data.msg)
@@ -117,6 +119,9 @@ const Delete  = async (data) => {
         } else {
             showError(resp.data.msg);            
         }
+    } else {
+        return false;
+    }
 }
 
 const SearchArea = async () => {
