@@ -9,6 +9,8 @@ use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\ProductosController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\PdfController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -23,9 +25,7 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/productos', [ProductosController::class, 'Showview'])->middleware(['auth', 'verified'])->name('productos');
 
@@ -80,6 +80,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/searchpartidas/{name}', [SearchController::class, 'SearchPartidas'])->name('search.partidas');
     Route::get('/searchproductos/{name}', [SearchController::class, 'SearchProductos'])->name('search.productos');
 
+    /* para los pdf */
+    Route::get('/descargar-pdf/{no_orden?}', [PdfController::class, 'descargar'])->name('descargar.pdf');
+    Route::get('/ver-pdf/{id}', [PdfController::class, 'verPDF'])->name('ver.pdf');
 
 });
 

@@ -9,6 +9,7 @@ class Entradas extends Model
     protected $table = 'entradas';
 
     protected $fillable = [
+        'id',
         'no_orden',
         'proveedor',
         'fecha_compra',
