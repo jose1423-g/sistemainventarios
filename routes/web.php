@@ -12,6 +12,7 @@ use App\Http\Controllers\SearchController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Middleware\Admin;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -38,7 +39,7 @@ Route::get('/personal', [PersonalController::class, 'Showview'])->middleware(['a
 
 Route::get('/partidapresupuestal', [PartidaPresupuestalController::class, 'Showview'])->middleware(['auth', 'verified'])->name('partidapresupuestal');
 
-Route::get('/usuarios', [UsuariosController::class, 'Showview'])->middleware(['auth', 'verified'])->name('usuarios');
+Route::get('/usuarios', [UsuariosController::class, 'Showview'])->middleware(['auth', 'verified', Admin::class])->name('usuarios');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

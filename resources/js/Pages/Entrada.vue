@@ -8,7 +8,7 @@ import TextInput from '@/Components/TextInput.vue';
 import SearchResult from '@/Components/SearchResult.vue';
 import FieldError from '@/Components/FieldError.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
-import {ref} from 'vue';
+import {ref, watch} from 'vue';
 
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -25,6 +25,9 @@ const btndisabled = ref(false);
 const dataArea = ref([]);
 const msgerrors = ref([]);
 
+const searcharea = ref(''); 
+const banderaarea = ref(false);
+
 const size = ref({ label: 'Small', value: 'small' });
 
 defineProps({
@@ -38,14 +41,13 @@ const form = useForm({
     no_orden: '',
     proveedor: '',
     fecha_compra: '',
-    fecha_entrada: '', 
-    searcharea: '',
+    fecha_entrada: '',
     area_solicitante: '',
     numero_requisicion: '',
     cantidad_piezas: '',
     precio_unitario: '',
     IVA: '',
-    Total: '',
+    total: '',
 });
 
 
@@ -88,7 +90,7 @@ const Edit = async (data) => {
         if (resp.data.result == 0) {
             showError(resp.data.msg);
         } else {
-            console.log(resp.data);
+            
             visibleRight.value = true;
             form.id = resp.data.id;
             form.no_orden = resp.data.no_orden;
@@ -101,7 +103,7 @@ const Edit = async (data) => {
             form.precio_unitario = resp.data.precio_unitario;
             form.IVA = resp.data.IVA;
             form.precio_unitario = resp.data.precio_unitario;
-            form.Total = resp.data.Total;
+            form.total = resp.data.total;
             form.searcharea = resp.data.area 
         }
     
@@ -109,7 +111,9 @@ const Edit = async (data) => {
 
 const Delete  = async (data) => {
     
-    let resp = await axios.delete(route('delete.entrada', data.id));    
+    if (confirm('¿Estas seguro de eliminar este registro?')) {
+
+        let resp = await axios.delete(route('delete.entrada', data.id));    
     
         if (resp.data.result == 1) {
             showSuccess(resp.data.msg)
@@ -117,32 +121,52 @@ const Delete  = async (data) => {
         } else {
             showError(resp.data.msg);            
         }
+    } else {
+        return false;
+    }
 }
 
-const SearchArea = async () => {
-    if (form.searcharea.trim()) {
+const SearchArea = async (timeouarea) => {
+    if (timeouarea) {
         try {
-            let resp = await axios.get(route('search.area', form.searcharea));            
+            let resp = await axios.get(route('search.area', timeouarea));            
             dataArea.value = resp.data;
         } catch (error) {
-            showError(resp.data.msg);
-        }        
+            dataArea.value = error.response.data;
+        }
     } else {
         dataArea.value = [];
-        form.area = '';
+        form.area_solicitante = '';
+        banderaarea.value = false;
     }    
 }
 
-const handleSelection = (id, text) => {    
+const handleSelectionarea = (id, text) => {  
+    banderaarea.value = true;  
     form.area_solicitante = id;
-    form.searcharea = text;
+    searcharea.value = text;
     dataArea.value = [];
+
+    setTimeout( () => {
+        banderaarea.value = false;
+    }, 100);
 };
+
+let timeouarea = null;
+watch(searcharea, (newvalue) => {
+    if (banderaarea.value) return false;
+    
+    clearTimeout(timeouarea);
+    timeouarea = setTimeout(() => {
+        SearchArea(newvalue)
+    }, 500);
+});
 
 const ClearForm = () => {
     form.reset();
     msgerrors.value  = [];
     visibleRight.value = true;
+    searcharea.value = '';
 }
 
 </script>
@@ -174,17 +198,21 @@ const ClearForm = () => {
                 <Column header="Acciones">
                     <template #body="rowdata">
                         <div class="flex gap-2">
-                            <PrimaryButton type="button" @click="Edit(rowdata.data)">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                    <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />
-                                    <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z" />
-                                </svg>
-                            </PrimaryButton>
-                            <DangerButton type="button" @click="Delete(rowdata.data)">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                    <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
-                                </svg>
-                            </DangerButton>
+                            <template v-if="$page.props.role.role_user.role == 'Admin' || $page.props.role.role_user.role == 'Editor'">
+                                <PrimaryButton type="button" @click="Edit(rowdata.data)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                        <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />
+                                        <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z" />
+                                    </svg>
+                                </PrimaryButton>
+                            </template>
+                            <template v-if="$page.props.role.role_user.role == 'Admin'">
+                                <DangerButton type="button" @click="Delete(rowdata.data)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                        <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
+                                    </svg>
+                                </DangerButton>
+                            </template>
                         </div>
                     </template>
                 </Column>
@@ -247,11 +275,10 @@ const ClearForm = () => {
                             type="search"
                             class="w-full mt-1"
                             placeholder="Buscar..."
-                            v-model="form.searcharea"
-                            @input="SearchArea"
+                            v-model="searcharea"
                         />
+                        <SearchResult v-if="searcharea" :id="'searcharea'" :data="dataArea" :label="'id'" :text="'area'" @select="handleSelectionarea" />
                         <FieldError :message="msgerrors.area_solicitante" />
-                        <SearchResult :id="'searcharea'" :data="dataArea" :label="'id'" :text="'area'" @select="handleSelection" />
                     </div>  
                     <TextInput
                         id="area_solicitante"
@@ -300,14 +327,14 @@ const ClearForm = () => {
                         <FieldError :message="msgerrors.IVA" />
                     </div>                    
                     <div>
-                        <InputLabel for="Total" value="Total"/>
+                        <InputLabel for="total" value="total"/>
                         <TextInput
-                            id="Total"
+                            id="total"
                             type="number"
                             class="w-full mt-1"
-                            v-model="form.Total"
+                            v-model="form.total"
                         />
-                        <FieldError :message="msgerrors.Total" />
+                        <FieldError :message="msgerrors.total" />
                     </div>                    
                 </div>                
                 
