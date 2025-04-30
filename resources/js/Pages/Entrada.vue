@@ -104,7 +104,13 @@ const Edit = async (data) => {
             form.IVA = resp.data.IVA;
             form.precio_unitario = resp.data.precio_unitario;
             form.total = resp.data.total;
-            form.searcharea = resp.data.area 
+            searcharea.value = resp.data.area 
+
+            banderaarea.value = true;
+
+            setTimeout( () => {
+                banderaarea.value = false;
+            }, 100);
         }
     
 }

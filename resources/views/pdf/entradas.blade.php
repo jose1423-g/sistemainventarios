@@ -1,140 +1,177 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>{{ $titulo ?? 'Reporte de Entradas' }}</title>
-    <style>
-        body {
-            font-family: DejaVu Sans, sans-serif;
-            font-size: 13px;
-            line-height: 1.6;
-            padding: 40px;
-            color: #333;
-        }
-        h1, h2, h3, h4 {
-            margin: 0 0 10px;
-        }
-        h1 {
-            font-size: 24px;
-            text-align: center;
-            color: #2c3e50;
-            border-bottom: 2px solid #2c3e50;
-            padding-bottom: 10px;
-        }
-        h2 {
-            font-size: 18px;
-            text-align: center;
-            color: #333;
-            margin-top: 30px;
-        }
-        p {
-            margin: 5px 0;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            font-size: 12px;
-        }
-        th, td {
-            border: 1px solid #bbb;
-            padding: 8px;
-            text-align: center;
-        }
-        th {
-            background-color: #f2f2f2;
-            color: #2c3e50;
-        }
-        tbody tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        .img-producto {
-            text-align: center;
-        }
-        .imagen-producto {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            border: 1px solid #ddd;
-        }
-        .responsable {
-            margin-top: 120px;
-            text-align: center;
-            font-size: 12px;
-        }
-        .line {
-            width: 300px;
-            height: 1px;
-            background-color: #333;
-            margin: 20px auto 5px auto;
-        }
-        .footer {
-            position: fixed;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 10px;
-            color: #aaa;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Reporte de entrada</title>
+    @vite('resources/css/app.css')
 </head>
 <body>
-    @foreach($entradas as $entrada)
-    <h1>{{ $titulo ?? 'Reporte de Entrada' }}</h1>
     
-    <h2>Detalle de Entrada al Almacén</h2>
-    
-    <p><strong>Número de Orden:</strong> {{ $entrada->no_orden ?? 'N/A' }}</p>
-    <p><strong>Fecha de Compra:</strong> {{ $entrada->fecha_compra ? date('d/m/Y', strtotime($entrada->fecha_compra)) : 'N/A' }}</p>
-    <p><strong>Fecha de Entrada:</strong> {{ date('d/m/Y', strtotime($entrada->fecha_entrada)) }}</p>
-    <p><strong>Área Solicitante:</strong> {{ $entrada->area_solicitante ?? 'No especificada' }}</p>
-    <p><strong>Encargado del Area: </strong> {{ $entrada->encargado_area ?? 'No especificado' }}</p>
-    <p><strong>Proveedor:</strong> {{ $entrada->proveedor ?? 'No especificado' }}</p>
-    
-    <h3 style="margin-top: 30px; color: #333;">Datos del Producto</h3>
-    
-    <table>
-        <thead>
-            <tr>
-                <th>Nombre del Producto</th>
-                <th>Cantidad</th>
-                <th>Precio Total</th>
-                <th>Partida Presupuestal</th>
-                <th>Imagen</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>{{ $entrada->producto ?? 'No especificado' }}</td>
-                <td>{{ $entrada->cantidad_piezas ?? '0' }}</td>
-                <td>${{ number_format($entrada->total ?? 0, 2) }}</td>
-                <td>{{ $entrada->partida_presupuestal ?? 'No especificada' }}</td>
-                <td>
-                    <div class="img-producto">
-                        @if(isset($entrada->img) && !empty($entrada->img))
-                            <img src="{{ storage_path('app/public/productos/'.$entrada->img) }}" class="imagen-producto" alt="Imagen del producto">
-                        @else
-                            Sin imagen
-                        @endif
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    
-    <div class="responsable">
-        <div class="line"></div>
-        <h4>Nombre y Firma de quien recibe</h4>
+    @php
+        // dd($entrada, true)
+        // dd($productos_entrada, true)
+    @endphp        
+
+    {{-- table datos generales --}}
+    <div class="container mx-auto px-5 my-10">
+        <h2 class="text-center font-bold text-xl my-5">Reporte de entradas</h2>
+
+        <table class="w-full text-sm text-left rtl:text-right text-gray-500 mb-5">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-2">
+                        No° de Entrada
+                    </th>
+                    <th scope="col" class="px-6 py-2">
+                        Proveedor
+                    </th>
+                    <th scope="col" class="px-6 py-2">
+                        Fecha de entrada
+                    </th>
+                    <th scope="col" class="px-6 py-2">
+                        Fecha de compra
+                    </th>                    
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="bg-white border-b dark:bg-gray-800 border-gray-200">
+                    <th scope="row" class="px-6 py-2 font-medium text-blue-900 whitespace-nowrap">
+                        {{ $entrada->no_orden }}
+                    </th>
+                    <td class="px-6 py-2">
+                        {{ $entrada->proveedor }}
+                    </td>
+                    <td class="px-6 py-2">
+                        {{ $entrada->fecha_compra }}
+                    </td>
+                    <td class="px-6 py-2">
+                        {{ $entrada->fecha_entrada }}
+                    </td>                    
+                </tr>         
+            </tbody>
+        </table> 
+
+        <table class="w-full text-sm text-left rtl:text-right text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-2">
+                        No° de requisicion
+                    </th>
+                    <th scope="col" class="px-6 py-2">
+                        Total de piezas
+                    </th>
+                    <th scope="col" class="px-6 py-2">
+                        Precio unitario
+                    </th>
+                    <th scope="col" class="px-6 py-2">
+                        Iva
+                    </th>
+                    <th scope="col" class="px-6 py-2">
+                        Total
+                    </th>                    
+                </tr>
+            </thead>
+            <tbody>                
+                <tr class="bg-white border-b dark:bg-gray-800 border-gray-200">
+                    <td class="px-6 py-2">
+                        {{ $entrada->numero_requisicion }}
+                    </td>
+                    <td scope="row" class="px-6 py-2 font-medium text-blue-900 whitespace-nowrap">
+                        {{ $entrada->cantidad_piezas }}
+                    </td>
+                    <td class="px-6 py-2">
+                        {{ $entrada->precio_unitario }}
+                    </td>
+                    <td class="px-6 py-2">
+                        {{ $entrada->iva }}
+                    </td>
+                    <td class="px-6 py-2">
+                        {{ $entrada->total }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
-    
-    <div class="footer">
-        © {{ date('Y') }} - Reporte Sistema de Inventarios
+
+    {{-- table productos --}}
+    <div class="container mx-auto px-5 mb-10">
+        <h2 class="text-center font-semibold text-xl my-5">Productos</h2>
+
+        <table class="w-full text-sm text-left rtl:text-right text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3">
+                        Nombre del producto
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        stock
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Unidad
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Precio
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Imagen
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($productos_entrada as $item)            
+                    <tr class="bg-white border-b dark:bg-gray-800 border-gray-200">
+                        <th scope="row" class="px-6 py-2 font-medium text-blue-900 whitespace-nowrap">
+                            {{ $item->nombre }}
+                        </th>
+                        <td class="px-6 py-2">
+                            {{ $item->stock }}
+                        </td>
+                        <td class="px-6 py-2">
+                            {{ $item->unidad }}
+                        </td>
+                        <td class="px-6 py-2">
+                            {{ $item->precio }}
+                        </td>
+                        <td class="px-6 py-2">
+                            <img src="{{ $item->img }}" class="w-[5rem] max-h-full object-cover" alt="Apple Watch">
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
     </div>
-    
-    @if(!$loop->last)
-        <div style="page-break-after: always;"></div>
-    @endif
-    @endforeach
+
+    {{-- nombre y frima --}}
+    <div class="container mx-auto px-5">
+        <table class="w-full text-sm text-center rtl:text-right text-gray-900">
+
+            <tr class="bg-white mb-[35rem]">
+                <td class="px-5 py-0 font-semibold">Area solcitante: <span class="uppercase">{{ $entrada->area }}</span></td>
+                <td class="px-5 py-0 uppercase font-semibold">Encargado: <span class="uppercase">{{ $entrada->nombre }}</span></td>
+            </tr>
+
+            <tr>
+                <td colspan="2" class="px-2 py-10 border-black border-b"></td>
+            </tr>
+
+            <tr class="bg-white">
+                <td colspan="2" class="text-center py-2 pb-12">firma del encargado.</td>                
+            </tr>
+
+            <tr>
+                <td colspan="2" class="px-2 py-10 border-black border-b"></td>
+            </tr>
+
+            <tr class="bg-white">
+                <td colspan="2" class="text-center py-2">Nombre y firma de quien recibe.</td>                
+            </tr>
+
+            
+        </table>
+    </div>
+
+
 </body>
 </html>

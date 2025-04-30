@@ -2,39 +2,8 @@
 // import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import AuthenLayout from '@/Layouts/AuthenLayout.vue'
 import { Head } from '@inertiajs/vue3';
-import Modal from '@/Components/Modal.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
 import axios from 'axios';
-import {ref} from 'vue';
-
-const visible = ref(false);
-const showmodal = ref(false);
-const btndisabled = ref(false);
-const showspinner = ref(true);
-const currentEntradaId = ref(null);
-const showPdfModal = ref(false);
-
-// Método para cerrar modal de PDF
-const closePdfModal = () => {
-    showPdfModal.value = false;
-};
-
-// Método para mostrar el PDF
-// En Dashboard.vue
-const viewPDF = async (data) => {
-    showPdfModal.value = true;
-    // console.log(data.id)
-    // console.log("Visualizando PDF para no_orden:", no_orden); // Para depuración
-    let resp = await axios.get(route('ver.pdf', data.id));
-    console.log(resp)
-    // currentEntradaId.value = no_orden;
-    
-};
-
-const closeModal = () => {    
-    showmodal.value = false;
-}
+import {ref } from 'vue';
 
 const props = defineProps({
     entradas: {
@@ -51,17 +20,32 @@ const props = defineProps({
     }
 });
 
+// Método para mostrar el PDF
+const urlpdf = ref('')
+const viewPDF = async (data) => {
+    let response = await axios.get(route('view.pdf.entrada', data.id));
+    let fileURL = response.data.url;
+    urlpdf.value = fileURL
+
+    const windowFeatures = "width=1020,height=620";
+    window.open(
+        urlpdf.value,
+        "mozillaWindow",
+        windowFeatures,
+    );
+}
+
 const downloadPDF = () => {
-    const url = currentEntradaId.value 
-        ? route('descargar.pdf', currentEntradaId.value) 
-        : route('descargar.pdf');
-    window.open(url, '_blank');
+    // const url = currentEntradaId.value 
+    //     ? route('descargar.pdf', currentEntradaId.value) 
+    //     : route('descargar.pdf');
+    // window.open(url, '_blank');
 };
 
 </script>
 
 <template>
-    <Head title="Partida Presupuestal" />
+    <Head title="Dashboard" />
 
     <AuthenLayout>
         <div class="p-6">
@@ -167,7 +151,7 @@ const downloadPDF = () => {
                                         <td class="px-4 py-2 text-sm text-gray-500">{{ new Date(salida.fecha_salida).toLocaleDateString() }}</td>
                                         <td class="px-4 py-2 text-sm text-gray-900">{{ salida.no_salida }}</td>
                                         <td class="px-4 py-2 text-sm text-gray-500">
-                                            <button @click="viewPDF(entrada.no_orden)" class="inline-flex items-center justify-center hover:text-blue-600">
+                                            <button @click="viewPDF(salida)" class="inline-flex items-center justify-center hover:text-blue-600">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -188,35 +172,7 @@ const downloadPDF = () => {
                     Descargar PDF
                 </button>
             </div>
-        </div>
-    <!-- Modal para visualizar PDF -->
-    <Modal :show="showPdfModal" @close="closePdfModal">
-    <div class="p-6">
-        <h2 class="text-lg font-medium text-gray-900">
-            <!-- Vista previa de Entrada #{{ currentEntradaId.value }} -->
-        </h2>
-        
-        <div class="mt-4" style="height: 70vh;">
-            <!-- Añadimos un timestamp para evitar caché -->
-            <!-- <iframe 
-                :src="`${route('ver.pdf', currentEntradaId.value)}?t=${Date.now()}`" 
-                style="width: 100%; height: 100%;" 
-                frameborder="0">
-            </iframe> -->
-        </div>
-        
-        <div class="flex justify-end mt-6">
-            <SecondaryButton @click="closePdfModal" class="mr-2">
-                Cerrar
-            </SecondaryButton>
-            <PrimaryButton @click="downloadPDF" class="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15M9 12l3 3m0 0 3-3m-3 3V2.25" />
-                </svg>
-                Descargar PDF
-            </PrimaryButton>
-        </div>
-    </div>
-</Modal>
+        </div>     
     </AuthenLayout>
+
 </template>
