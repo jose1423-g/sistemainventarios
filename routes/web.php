@@ -82,7 +82,8 @@ Route::middleware('auth')->group(function () {
 
     /* para los pdf */
     Route::get('/descargar-pdf/{no_orden?}', [PdfController::class, 'descargar'])->name('descargar.pdf');
-    Route::get('/pdf-entrada/{id}', [PdfController::class, 'viewPdfEntrada'])->name('view.pdf.entrada');
+    Route::get('/pdf-entrada/{id}', [PdfController::class, 'ViewPdfEntrada'])->name('view.pdf.entrada');
+    Route::get('/pdf-salida/{id}', [PdfController::class, 'ViewPdfSalida'])->name('view.pdf.salida');
 
 });
 

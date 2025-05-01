@@ -22,7 +22,8 @@ const props = defineProps({
 
 // Método para mostrar el PDF
 const urlpdf = ref('')
-const viewPDF = async (data) => {
+const viewpdfentradas = async (data) => {
+    
     let response = await axios.get(route('view.pdf.entrada', data.id));
     let fileURL = response.data.url;
     urlpdf.value = fileURL
@@ -35,11 +36,57 @@ const viewPDF = async (data) => {
     );
 }
 
-const downloadPDF = () => {
-    // const url = currentEntradaId.value 
-    //     ? route('descargar.pdf', currentEntradaId.value) 
-    //     : route('descargar.pdf');
-    // window.open(url, '_blank');
+const downloadpdfentradas = async (data) => {  
+    if (confirm('¿Desea proceder con la descarga del archivo PDF correspondiente a la entrada?')) {
+        let response = await axios.get(route('view.pdf.entrada', data.id));
+        let fileURL = response.data.url;
+        urlpdf.value = fileURL;
+
+        // Crear un enlace temporal para descargar el archivo
+        const link = document.createElement('a');
+        link.href = urlpdf.value;
+        link.download = `reporte_de_entrada_${data.no_orden}.pdf`; // Puedes personalizar el nombre del archivo
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);    
+    } else {
+        return false;
+    }
+
+};
+
+
+const viewpdfsalidas = async (data) => {
+    
+    let response = await axios.get(route('view.pdf.salida', data.id));
+    let fileURL = response.data.url;
+    urlpdf.value = fileURL
+
+    const windowFeatures = "width=1020,height=620";
+    window.open(
+        urlpdf.value,
+        "mozillaWindow",
+        windowFeatures,
+    );
+}
+
+const downloadpdfsalidas = async (data) => {  
+    if (confirm('¿Desea proceder con la descarga del archivo PDF correspondiente a la salida?')) {
+        let response = await axios.get(route('view.pdf.entrada', data.id));
+        let fileURL = response.data.url;
+        urlpdf.value = fileURL;
+
+        // Crear un enlace temporal para descargar el archivo
+        const link = document.createElement('a');
+        link.href = urlpdf.value;
+        link.download = `reporte_de_entrada_${data.no_orden}.pdf`; // Puedes personalizar el nombre del archivo
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);    
+    } else {
+        return false;
+    }
+
 };
 
 </script>
@@ -98,7 +145,7 @@ const downloadPDF = () => {
                     </div>
                     <div class="p-6">
                         <div class="mb-4">
-                            <p class="text-gray-600">Revise el historial de entradas de productos al inventario.</p>
+                            <p class="text-gray-500 text-xs">Revise el historial de entradas de productos al inventario.</p>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="min-w-full bg-white">
@@ -106,23 +153,28 @@ const downloadPDF = () => {
                                     <tr>
                                         <th class="px-4 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Fecha</th>
                                         <th class="px-4 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Numero de orden</th>
-                                        <th class="px-4 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Visualizar</th>
+                                        <th class="px-4 py-2 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
-                                <tr v-for="entrada in datosEntradas" :key="entrada.no_orden" class="hover:bg-gray-50">
-                                    <td class="px-4 py-2 text-sm text-gray-500">{{ new Date(entrada.fecha_entrada).toLocaleDateString() }}</td>
-                                    <td class="px-4 py-2 text-sm text-gray-900">{{ entrada.no_orden }}</td>
-                                    <td class="px-4 py-2 text-sm text-center text-gray-500">
-                                        <button @click="viewPDF(entrada)" class="inline-flex items-center justify-center hover:text-blue-600">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                                            </svg>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
+                                    <tr v-for="entrada in datosEntradas" :key="entrada.no_orden" class="hover:bg-gray-50">
+                                        <td class="px-4 py-2 text-sm text-gray-500">{{ new Date(entrada.fecha_entrada).toLocaleDateString() }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900">{{ entrada.no_orden }}</td>
+                                        <td class="px-4 py-2 text-sm text-center text-gray-500 space-x-3">                                        
+                                            <button @click="viewpdfentradas(entrada)" class="inline-flex items-center justify-center hover:text-blue-600">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                                </svg>
+                                            </button>
+                                            <button @click="downloadpdfentradas(entrada)" class="inline-flex items-center justify-center hover:text-blue-600">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                                </svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -135,7 +187,7 @@ const downloadPDF = () => {
                     </div>
                     <div class="p-6">
                         <div class="mb-4">
-                            <p class="text-gray-600">Revise el historial de salidas de productos del inventario.</p>
+                            <p class="text-gray-500 text-xs">Revise el historial de salidas de productos del inventario.</p>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="min-w-full bg-white">
@@ -150,13 +202,18 @@ const downloadPDF = () => {
                                     <tr v-for="salida in datosSalidas" :key="salida.no_salida" class="hover:bg-gray-50">
                                         <td class="px-4 py-2 text-sm text-gray-500">{{ new Date(salida.fecha_salida).toLocaleDateString() }}</td>
                                         <td class="px-4 py-2 text-sm text-gray-900">{{ salida.no_salida }}</td>
-                                        <td class="px-4 py-2 text-sm text-gray-500">
-                                            <button @click="viewPDF(salida)" class="inline-flex items-center justify-center hover:text-blue-600">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                                            </svg>
-                                        </button>
+                                        <td class="px-4 py-2 text-sm text-gray-500 space-x-3">
+                                            <button @click="viewpdfsalidas(salida)" class="inline-flex items-center justify-center hover:text-blue-600">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                                </svg>
+                                            </button>
+                                            <button @click="downloadpdfsalidas(salida)" class="inline-flex items-center justify-center hover:text-blue-600">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                                </svg>
+                                            </button>
                                         </td>
                                     </tr>
                                 </tbody>
