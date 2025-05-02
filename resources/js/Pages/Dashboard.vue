@@ -4,6 +4,10 @@ import AuthenLayout from '@/Layouts/AuthenLayout.vue'
 import { Head } from '@inertiajs/vue3';
 import axios from 'axios';
 import {ref } from 'vue';
+import Toast from 'primevue/toast';
+import { useToast } from "primevue/usetoast";
+const toast = useToast();
+
 
 const props = defineProps({
     entradas: {
@@ -22,71 +26,98 @@ const props = defineProps({
 
 // Método para mostrar el PDF
 const urlpdf = ref('')
-const viewpdfentradas = async (data) => {
-    
-    let response = await axios.get(route('view.pdf.entrada', data.id));
-    let fileURL = response.data.url;
-    urlpdf.value = fileURL
+let msg = '';
+const viewpdfentradas = async (data) => { 
+    showInfo(msg = 'Por favor, espere. Estamos preparando su PDF para visualizarlo.');
+    try {
+        let response = await axios.get(route('view.pdf.entrada', data.id));
+        let fileURL = response.data.url;
+        urlpdf.value = fileURL
 
-    const windowFeatures = "width=1020,height=620";
-    window.open(
-        urlpdf.value,
-        "mozillaWindow",
-        windowFeatures,
-    );
+        const windowFeatures = "width=1020,height=620";
+        window.open(
+            urlpdf.value,
+            "mozillaWindow",
+            windowFeatures,
+        );    
+    } catch (error) {
+        showError(error.data.msg)
+    }
+    
 }
 
 const downloadpdfentradas = async (data) => {  
-    if (confirm('¿Desea proceder con la descarga del archivo PDF correspondiente a la entrada?')) {
-        let response = await axios.get(route('view.pdf.entrada', data.id));
-        let fileURL = response.data.url;
-        urlpdf.value = fileURL;
+    try {
+        if (confirm('¿Desea proceder con la descarga del archivo PDF correspondiente a la entrada?')) {
+            showInfo(msg = 'Por favor, espere. Estamos preparando su PDF de entrada para la descarga.')
+            let response = await axios.get(route('view.pdf.entrada', data.id));
+            let fileURL = response.data.url;
+            urlpdf.value = fileURL;
 
-        // Crear un enlace temporal para descargar el archivo
-        const link = document.createElement('a');
-        link.href = urlpdf.value;
-        link.download = `reporte_de_entrada_${data.no_orden}.pdf`; // Puedes personalizar el nombre del archivo
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);    
-    } else {
-        return false;
+            // Crear un enlace temporal para descargar el archivo
+            const link = document.createElement('a');
+            link.href = urlpdf.value;
+            link.download = `reporte_de_entrada_${data.no_orden}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);    
+        } else {
+            return false;
+        }    
+    } catch (error) {
+        showError(error.data.msg)
     }
-
 };
 
 
 const viewpdfsalidas = async (data) => {
-    
-    let response = await axios.get(route('view.pdf.salida', data.id));
-    let fileURL = response.data.url;
-    urlpdf.value = fileURL
+    showInfo(msg = 'Por favor, espere. Estamos preparando su PDF para visualizarlo.');
+    try {
+        let response = await axios.get(route('view.pdf.salida', data.id));
+        let fileURL = response.data.url;
+        urlpdf.value = fileURL
 
-    const windowFeatures = "width=1020,height=620";
-    window.open(
-        urlpdf.value,
-        "mozillaWindow",
-        windowFeatures,
-    );
+        const windowFeatures = "width=1020,height=620";
+        window.open(
+            urlpdf.value,
+            "mozillaWindow",
+            windowFeatures,
+        );    
+    } catch (error) {
+        showError(error.response.data.msg)
+    }
+    
 }
 
 const downloadpdfsalidas = async (data) => {  
-    if (confirm('¿Desea proceder con la descarga del archivo PDF correspondiente a la salida?')) {
-        let response = await axios.get(route('view.pdf.entrada', data.id));
-        let fileURL = response.data.url;
-        urlpdf.value = fileURL;
+    try {
+        if (confirm('¿Desea proceder con la descarga del archivo PDF correspondiente a la salida?')) {
+            showInfo(msg = 'Por favor, espere. Estamos preparando su PDF de salida para la descarga.')
+            let response = await axios.get(route('view.pdf.salida', data.id));
+            let fileURL = response.data.url;
+            urlpdf.value = fileURL;
 
-        // Crear un enlace temporal para descargar el archivo
-        const link = document.createElement('a');
-        link.href = urlpdf.value;
-        link.download = `reporte_de_entrada_${data.no_orden}.pdf`; // Puedes personalizar el nombre del archivo
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);    
-    } else {
-        return false;
-    }
+            // Crear un enlace temporal para descargar el archivo
+            const link = document.createElement('a');
+            link.href = urlpdf.value;
+            link.download = `reporte_de_entrada_${data.no_salida}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);    
+        } else {
+            return false;
+        }    
+    } catch (error) {
+        showError(error.data.msg)
+    }    
+};
 
+const showInfo = (msg) => {
+    toast.add({ severity: 'info', summary: 'Info', detail: msg, life: 4000 });
+};
+
+const showError = (msg) => {
+    toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 3000 });
 };
 
 </script>
@@ -95,6 +126,7 @@ const downloadpdfsalidas = async (data) => {
     <Head title="Dashboard" />
 
     <AuthenLayout>
+        <Toast />
         <div class="p-6">
             <h1 class="mb-6 text-2xl font-semibold text-gray-800">Panel de Control</h1>
             
@@ -136,6 +168,18 @@ const downloadpdfsalidas = async (data) => {
                     </div>
                 </div>
             </div>
+
+            <!-- <div class="absolute top-16 right-0 z-50 bg-white shadow-xl rounded-sm p-3 ">
+                <div class="flex items-center justify-center space-x-2 py-4 text-gray-600">
+                    <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
+                    </path>
+                    </svg>
+                    <span class="text-sm font-medium">Espere, estamos preparando tu PDF...</span>
+                </div>
+            </div> -->
 
             <div class="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2">
                 <!-- Card de Consulta de Entradas -->
@@ -221,13 +265,6 @@ const downloadpdfsalidas = async (data) => {
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <div>
-                <h1 class="mb-4 text-xl font-semibold">Generar PDF</h1>
-                <button @click="generarPDF" class="px-4 py-2 text-white transition bg-blue-500 rounded hover:bg-blue-600">
-                    Descargar PDF
-                </button>
             </div>
         </div>     
     </AuthenLayout>

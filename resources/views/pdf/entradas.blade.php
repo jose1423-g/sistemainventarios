@@ -187,7 +187,7 @@
     </div>
 
     {{-- nombre y frima --}}
-    <div>
+    {{-- <div>
         <table class="w-full text-sm text-center rtl:text-right text-gray-900">
 
             <tr>
@@ -202,10 +202,9 @@
             <tr>
                 <td colspan="2" class="pt-4">Nombre y firma de quien recibe.</td>                
             </tr>
-
             
         </table>
-    </div>
+    </div> --}}
 
 </body>
 </html>

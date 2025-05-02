@@ -15,7 +15,7 @@ class DashboardController extends Controller
         $datosEntradas = Entradas::select('id', 'fecha_entrada', 'no_orden')->get();
 
         $salidas = Salidas::count();
-        $datosSalidas = Salidas::select('fecha_salida', 'no_salida')->get();
+        $datosSalidas = Salidas::select('id', 'fecha_salida', 'no_salida')->get();
         return Inertia::render('Dashboard', [
             'entradas' => $entradas,
             'datosEntradas' => $datosEntradas,
