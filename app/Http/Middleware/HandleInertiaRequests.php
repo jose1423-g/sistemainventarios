@@ -40,14 +40,14 @@ class HandleInertiaRequests extends Middleware
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
-            'role' => fn () => [
-                'role_user' => $request->user() ? Roles::from('roles as t1')
+            'permission' => fn () => [
+                'role' => $request->user() ? Roles::from('roles as t1')
                 ->leftJoin('rol_usuario as t2', 't1.id', '=', 't2.fk_rol')
                 ->select(
-                    't1.nombre_rol as role',
+                    't1.nombre_rol as name',
                 )
                 ->where('t2.fk_usuario', $request->user()->id)->first() : null,
-            ],
+            ],         
         ];
     }
 }

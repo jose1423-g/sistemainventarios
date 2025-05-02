@@ -3,6 +3,7 @@
     import Dropdown from '@/Components/Dropdown.vue';
     import DropdownLink from '@/Components/DropdownLink.vue';
     import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
+    import Can from '@/Components/Can.vue';
     import { ref } from 'vue';
     
     const iconbtn = ref('<i class="text-black pi pi-bars !text-2xl"></i>')
@@ -136,7 +137,7 @@
                             Personal
                     </ResponsiveNavLink>
                 </li>
-                <template v-if="$page.props.role.role_user.role == 'Admin'">
+                <Can :roles="['Admin']">
                     <li>
                         <ResponsiveNavLink
                                 :href="route('usuarios')"
@@ -145,7 +146,7 @@
                                 Usuarios
                         </ResponsiveNavLink>
                     </li>
-                </template>
+                </Can>
             </ul>
         </div>                
     </aside>

@@ -1,5 +1,4 @@
 <script setup>
-// import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import AuthenLayout from '@/Layouts/AuthenLayout.vue'
 import { Head } from '@inertiajs/vue3';
 import axios from 'axios';
