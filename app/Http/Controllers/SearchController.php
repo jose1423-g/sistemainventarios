@@ -7,6 +7,7 @@ use App\Models\Areas;
 use App\Models\Productos;
 use App\Models\Entradas;
 use App\Models\Partidas;
+use Carbon\Carbon;
 
 class SearchController extends Controller
 {
@@ -48,6 +49,49 @@ class SearchController extends Controller
             $entradas = Entradas::where('no_orden', 'LIKE',  "%$name%")->get();   
             return $entradas;    
         } catch (\Throwable $th) {
+            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);
+        }
+    }
+
+    public function SearchEntradasTable (Request $request) {
+        try {
+            $entradas = Entradas::from('entradas as t1')
+            ->leftJoin('areas as t2', 't1.area_solicitante', '=', 't2.id')
+            ->select(
+                't1.id',
+                't1.no_orden',
+                't1.fecha_compra',
+                't1.fecha_entrada',
+                't2.area',
+            );
+
+            if ($request->filled('search_noentrada')) {
+                $entradas->where('t1.no_orden', 'LIKE', '%' . $request->search_noentrada . '%');
+            }
+
+            if ($request->filled('search_fechacompra')) {
+                $entradas->whereDate('t1.fecha_compra', $request->search_fechacompra);
+            }
+
+            if ($request->filled('search_fechaentrada')) {
+                $entradas->whereDate('t1.fecha_entrada', $request->search_fechaentrada);
+            }
+
+            if ($request->filled('search_area')) {
+                $entradas->where('t1.area_solicitante', $request->search_area);
+            }
+
+            $entradas = $entradas->get();
+
+            foreach ($entradas as $item) {
+                $entradas->fecha_compra = $item->fecha_compra ?  $item->fecha_compra = Carbon::parse($item->fecha_compra)->format('m/d/Y') : 'null';
+                $entradas->fecha_entrada = $item->fecha_entrada ?  $item->fecha_entrada = Carbon::parse($item->fecha_entrada)->format('m/d/Y') : 'null';
+            }
+
+            return $entradas;
+
+        } catch (\Throwable $th) {
+            return $th;
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);
         }
     }

@@ -1,9 +1,11 @@
 <script setup>
 import AuthenLayout from '@/Layouts/AuthenLayout.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
+import Select from '@/Components/Select.vue';
 import Can from '@/Components/Can.vue';
 import SearchResult from '@/Components/SearchResult.vue';
 import FieldError from '@/Components/FieldError.vue';
@@ -18,7 +20,6 @@ import Toast from 'primevue/toast';
 import { useToast } from "primevue/usetoast";
 const toast = useToast();
 
-
 const visibleRight = ref(false);
 const showspinner = ref(true);
 const btndisabled = ref(false);
@@ -30,10 +31,13 @@ const banderaarea = ref(false);
 
 const size = ref({ label: 'Small', value: 'small' });
 
-defineProps({
+const props = defineProps({
     Entradas: {
         type: Array,
-    }
+    },
+    Areas: {
+        type: Array,
+    },
 })
 
 const form = useForm({ 
@@ -50,6 +54,38 @@ const form = useForm({
     total: '',
 });
 
+const formsearch = useForm({
+    search_noentrada: '',
+    search_fechacompra: '',
+    search_fechaentrada: '',
+    search_area: '',
+});
+
+const entradas = ref(props.Entradas);
+
+watch(() => props.Entradas, (newVal) => {
+    entradas.value = [...newVal];
+});
+
+const SearchEntradaTable = async () => {
+    try {
+        let resp = await axios.post(route('search.entrada.table'), formsearch);
+        entradas.value = resp.data;
+    } catch (error) {
+        
+    }
+}
+
+const ClearFormEntrada = async () => {
+
+    formsearch.search_noentrada = '';
+    formsearch.search_fechacompra = '';
+    formsearch.search_fechaentrada = '';
+    formsearch.search_area = '';  
+
+    await SearchEntradaTable();
+
+}
 
 const submit = async () => {
     showspinner.value = false;
@@ -184,19 +220,68 @@ const ClearForm = () => {
     <AuthenLayout>
 
         <div class="p-5 bg-white border border-gray-200 rounded-sm shadow-md">
-            <h3 class="mb-5 text-2xl font-bold text-gray-900">Entradas</h3>
-            
-            <div class="flex justify-end mb-5">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-2xl font-bold text-gray-900">Entradas</h3>
                 <PrimaryButton type="button" @click="ClearForm">
                     <div class="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="mr-2 size-5">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z" clip-rule="evenodd" />
                         </svg>
-                        <span>Agregar</span>                    
+                        <span>Agregar</span>
                     </div>
                 </PrimaryButton>
             </div>
-            <DataTable :value="Entradas" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+            <!-- buscador -->         
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-3 mb-3">
+                <div>
+                    <InputLabel for="search_noentrada" value="No° entrada"/>
+                    <TextInput
+                        id="search_noentrada"
+                        type="search"
+                        class="w-full mt-1"
+                        v-model="formsearch.search_noentrada"
+                    />
+                </div>
+                <div>
+                    <InputLabel for="search_fechacompra" value="Fecha de compra"/>
+                    <TextInput
+                        id="search_fechacompra"
+                        type="date"
+                        class="min-w-full mt-1"
+                        v-model="formsearch.search_fechacompra"
+                    />
+                </div>
+                <div>
+                    <InputLabel for="search_fechaentrada" value="Fecha de entrada"/>
+                    <TextInput
+                        id="search_fechaentrada"
+                        type="date"
+                        class="w-full mt-1"
+                        v-model="formsearch.search_fechaentrada"
+                    />
+                </div>
+                <div>
+                    <InputLabel for="search_area" value="Area"/>
+                    <Select
+                        id="search_area"                            
+                        class="w-full mt-1"
+                        :data="Areas"
+                        :label="'id'"
+                        :text="'area'"
+                        v-model="formsearch.search_area"
+
+                    />
+                </div>
+            </div>                
+            <div class="flex justify-end space-x-3 mb-5">
+                <SecondaryButton type="button" @click="ClearFormEntrada">Clear</SecondaryButton>
+                <PrimaryButton type="button" @click="SearchEntradaTable">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                        <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
+                    </svg>
+                </PrimaryButton>
+            </div>            
+            <DataTable :value="entradas" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                 <Column field="no_orden" header="No° Entrada"></Column>
                 <Column field="fecha_compra" header="Fecha de compra"></Column>
                 <Column field="fecha_entrada" header="Fecha de entrada"></Column>

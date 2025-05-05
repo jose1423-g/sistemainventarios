@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+
+use App\Models\Areas;
 use App\Models\Entradas;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -9,7 +11,7 @@ use Carbon\Carbon;
 class EntradaController extends Controller
 {
     public function Showview () {
-
+        $areas = Areas::all();        
         $entradas = Entradas::from('entradas as t1')
         ->leftJoin('areas as t2', 't1.area_solicitante', '=', 't2.id')
         ->select(
@@ -19,7 +21,7 @@ class EntradaController extends Controller
             't1.fecha_entrada',
             't2.area',
         )->get();
-
+            
         foreach ($entradas as $item) {
             $entradas->fecha_compra = $item->fecha_compra ?  $item->fecha_compra = Carbon::parse($item->fecha_compra)->format('m/d/Y') : 'null';
             $entradas->fecha_entrada = $item->fecha_entrada ?  $item->fecha_entrada = Carbon::parse($item->fecha_entrada)->format('m/d/Y') : 'null';
@@ -27,7 +29,8 @@ class EntradaController extends Controller
     
         return Inertia::render('Entrada', 
             [
-                'Entradas' => $entradas
+                'Entradas' => $entradas,
+                'Areas' => $areas,
             ]
         );
     }
