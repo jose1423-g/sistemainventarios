@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Areas;
+use App\Models\Salidas;
 use App\Models\Productos;
 use App\Models\Entradas;
 use App\Models\Partidas;
@@ -91,7 +92,67 @@ class SearchController extends Controller
             return $entradas;
 
         } catch (\Throwable $th) {
-            return $th;
+            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);
+        }
+    }
+
+    public function SearchSalidasTable (Request $request) {
+        try {
+            $salidas = Salidas::from('salidas as t1')
+            ->leftJoin('areas as t2', 't1.fk_area', '=', 't2.id')
+            ->leftJoin('entradas as t3', 't1.fk_no_compra', '=', 't3.id')
+            ->select(
+                't1.id',
+                't1.no_salida',
+                't3.no_orden',
+                't1.fecha_salida',
+                't2.area',
+            );            
+
+            if ($request->filled('search_nosalida')) {
+                $salidas->where('t1.no_salida', $request->search_nosalida);
+            }
+
+            if ($request->filled('search_noentrada')) {
+                $salidas->where('t3.no_orden', $request->search_noentrada);
+            }
+
+            if ($request->filled('search_fechasalida')) {
+                $salidas->where('t1.fecha_salida', $request->search_fechasalida);
+            }
+
+            if ($request->filled('search_area')) {
+                $salidas->where('t2.id', $request->search_area);
+            }            
+            
+            $salidas = $salidas->get();
+
+            foreach($salidas as $item){
+                $salidas->fecha_salida =  $item->fecha_salida = Carbon::parse($item->fecha_salida)->format('m/d/Y');
+            }
+
+            return $salidas;
+
+        } catch (\Throwable $th) {
+            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);
+        }    
+    }
+
+    public function SearchPartidaTable (Request $request) {
+        try {
+            $partida = Partidas::query();
+
+            if ($request->filled('search_nopartida')) {
+                $partida->where('no_partida', $request->search_nopartida);
+            }          
+
+            if ($request->filled('search_nombre')) {
+                $partida->where('nombre', $request->search_nombre);
+            }          
+
+            $partida = $partida->get();
+            return $partida;
+        } catch (\Throwable $th) {
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);
         }
     }

@@ -81,6 +81,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/searchproductos/{name}', [SearchController::class, 'SearchProductos'])->name('search.productos');
 
     Route::post('/searchentradatable', [SearchController::class, 'SearchEntradasTable'])->name('search.entrada.table');
+    Route::post('/searchsalidatable', [SearchController::class, 'SearchSalidasTable'])->name('search.salida.table');
+    Route::post('/searchpartidatable', [SearchController::class, 'SearchPartidaTable'])->name('search.partida.table');
 
     /* para los pdf */
     Route::get('/descargar-pdf/{no_orden?}', [PdfController::class, 'descargar'])->name('descargar.pdf');

@@ -72,7 +72,7 @@ const SearchEntradaTable = async () => {
         let resp = await axios.post(route('search.entrada.table'), formsearch);
         entradas.value = resp.data;
     } catch (error) {
-        
+        showError(error.data.msg)
     }
 }
 

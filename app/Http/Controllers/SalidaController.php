@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+
+use App\Models\Areas;
 use App\Models\Salidas;
 use App\Models\Producto_salida;
 use App\Models\Productos;
@@ -11,6 +13,7 @@ use Carbon\Carbon;
 class SalidaController extends Controller
 {
     public function Showview () {
+        $areas = Areas::all();
         $salidas = Salidas::from('salidas as t1')
         ->leftJoin('areas as t2', 't1.fk_area', '=', 't2.id')
         ->leftJoin('entradas as t3', 't1.fk_no_compra', '=', 't3.id')
@@ -30,6 +33,7 @@ class SalidaController extends Controller
         return Inertia::render('Salida', 
             [
                 'Salidas' => $salidas,
+                'Areas' => $areas,
             ]
         );
     }
