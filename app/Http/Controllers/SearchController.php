@@ -272,4 +272,43 @@ class SearchController extends Controller
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);            
         }
     }
+
+    public function SearchProductTable (Request $request) {
+        try {
+
+            $productos = Productos::from('productos as t1')
+            ->leftJoin('producto_entrada as t2', 't1.id', '=', 't2.fk_producto')
+            ->leftJoin('entradas as t3', 't3.id', '=', 't2.fk_entrada')
+            ->leftJoin('producto_partidas as t4', 't1.id', '=', 't4.fk_producto')
+            ->leftJoin('partidas as t5', 't5.id', '=', 't4.fk_partida')
+            ->select(
+                't1.id',
+                't1.nombre',
+                't3.no_orden',
+                't3.fecha_compra',
+                't3.fecha_entrada',
+                't5.no_partida',
+            );
+            
+            if ($request->filled('search_product')) {
+                $productos->where('t1.nombre', 'LIKE', '%' . $request->search_product . '%');
+            }
+
+            if ($request->filled('search_product')) {
+                $productos->where('t3.no_orden', 'LIKE', '%' . $request->search_nopartida . '%');
+            }
+            
+            $productos = $productos->get();
+
+            foreach ($productos as $item) {
+                $productos->fecha_compra = $item->fecha_compra ?  $item->fecha_compra = Carbon::parse($item->fecha_compra)->format('m/d/Y') : 'null';
+                $productos->fecha_entrada = $item->fecha_entrada ?  $item->fecha_entrada = Carbon::parse($item->fecha_entrada)->format('m/d/Y') : 'null';
+            }
+
+            return $productos;
+
+        } catch (\Throwable $th) {            
+            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);            
+        }
+    }
 }

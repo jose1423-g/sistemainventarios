@@ -8,6 +8,7 @@ use App\Models\producto_partidas;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Carbon\Carbon;
 
 use function PHPUnit\Framework\returnValueMap;
 
@@ -28,6 +29,11 @@ class ProductosController extends Controller
             't3.fecha_entrada',
             't5.no_partida',
         )->get();
+
+        foreach ($productos as $item) {
+            $productos->fecha_compra = $item->fecha_compra ?  $item->fecha_compra = Carbon::parse($item->fecha_compra)->format('m/d/Y') : 'null';
+            $productos->fecha_entrada = $item->fecha_entrada ?  $item->fecha_entrada = Carbon::parse($item->fecha_entrada)->format('m/d/Y') : 'null';
+        }
 
         return Inertia::render('Productos', ['Productos' => $productos]);
     }
