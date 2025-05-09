@@ -11,7 +11,7 @@ class Entradas extends Model
     protected $fillable = [
         'id',
         'no_orden',
-        'proveedor',
+        'fk_proveedor',
         'fecha_compra',
         'fecha_entrada',
         'area_solicitante',

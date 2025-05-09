@@ -475,7 +475,7 @@ const ClearForm = () => {
                         <InputLabel for="precio" value="Precio"/>
                         <TextInput
                             id="precio"
-                            type="text"
+                            type="number"
                             class="w-full mt-1"
                             v-model="form.precio"
                         />

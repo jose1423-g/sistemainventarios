@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Areas;
 use App\Models\Entradas;
+use App\Models\Producto_entrada;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -65,7 +66,7 @@ class EntradaController extends Controller
                 ['id' => $request->id],
                 [
                     'no_orden' => $request->no_orden, 
-                    'proveedor' => $request->proveedor,
+                    'fk_proveedor' => $request->proveedor,
                     'fecha_compra' => $request->fecha_compra,
                     'fecha_entrada' => $request->fecha_entrada,
                     'area_solicitante' => $request->area_solicitante,
@@ -79,7 +80,7 @@ class EntradaController extends Controller
             return response()->json(['result' => 1, 'msg' => 'Entrada creada con exito']);
 
         } catch (\Throwable $th) {
-            
+            return $th;
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'.$th]);
         }
     }   
@@ -88,10 +89,11 @@ class EntradaController extends Controller
         try {
             $entrada = Entradas::from('entradas as t1')
             ->leftJoin('areas as t2', 't1.area_solicitante', '=', 't2.id')
+            ->leftJoin('proveedores as t3', 't1.fk_proveedor', '=', 't3.id')
             ->select(
                 't1.id',
                 't1.no_orden',
-                't1.proveedor',
+                't3.nombre as proveedor',
                 't1.fecha_compra',
                 't1.fecha_entrada',
                 't1.area_solicitante',
@@ -111,7 +113,8 @@ class EntradaController extends Controller
     }
 
     public function Delete ($id) {
-        try {            
+        try {
+            Producto_entrada::where('fk_entrada', $id)->delete();            
             Entradas::destroy($id);
             return response()->json(['result' => 1, 'msg' => 'Entrada Eliminada con exito']);
         } catch (\Throwable $th) {

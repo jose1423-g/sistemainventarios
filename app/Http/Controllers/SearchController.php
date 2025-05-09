@@ -10,6 +10,7 @@ use App\Models\Productos;
 use App\Models\Personal;
 use App\Models\Entradas;
 use App\Models\Partidas;
+use App\Models\Proveedores;
 use Carbon\Carbon;
 
 class SearchController extends Controller
@@ -41,6 +42,9 @@ class SearchController extends Controller
     public function SearchPartidas ($name) {
         try {
             $partidas = Partidas::where('no_partida', 'LIKE',  "%$name%")->get();   
+            if ($partidas->isEmpty()) {
+                return response()->json([['id' => '', 'no_partida' => 'No se encontraron resultados..']], 404); // O lo que desees hacer si no se encuentra nada
+            }
             return $partidas;
         } catch (\Throwable $th) {
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);
@@ -50,6 +54,11 @@ class SearchController extends Controller
     public function SearchEntradas ($name) {
         try {
             $entradas = Entradas::where('no_orden', 'LIKE',  "%$name%")->get();   
+
+            if ($entradas->isEmpty()) {
+                return response()->json([['id' => '', 'no_orden' => 'No se encontraron resultados..']], 404); // O lo que desees hacer si no se encuentra nada
+            }
+
             return $entradas;    
         } catch (\Throwable $th) {
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);
@@ -78,14 +87,34 @@ class SearchController extends Controller
                 't4.fk_partida',
             )
             ->where('t1.nombre', 'LIKE',  "%$name%")
-            ->get();
-
-            // $productos = Productos::where('nombre', 'LIKE',  "%$name%")->get();
+            ->get();            
             
             if ($productos->isEmpty()) {
                 return response()->json([['id' => '', 'nombre' => 'Este producto no existe presiona para agregar..']], 404); // O lo que desees hacer si no se encuentra nada
             }
             return $productos;    
+            
+        } catch (\Throwable $th) {
+            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);
+        }
+    }
+
+    public function SearchProveedor ($name) {
+        try {
+
+            $proveedores = Proveedores::where(function ($query) use ($name) {
+                $query->where('nombre', 'LIKE', "%$name%")
+                      ->orWhere('razon_social', 'LIKE', "%$name%")
+                      ->orWhere('rfc', 'LIKE', "%$name%");
+            })->get();
+
+            // $productos = Productos::where('nombre', 'LIKE',  "%$name%")->get();
+            
+            if ($proveedores->isEmpty()) {
+                return response()->json([['id' => '', 'nombre' => 'No se encontraron resultados..']], 404); // O lo que desees hacer si no se encuentra nada
+            }
+
+            return $proveedores;    
             
         } catch (\Throwable $th) {
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);
@@ -306,6 +335,32 @@ class SearchController extends Controller
             }
 
             return $productos;
+
+        } catch (\Throwable $th) {            
+            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);            
+        }
+    }
+
+    public function SearchProveedorTable (Request $request) {
+        try {
+
+            $proveedores = Proveedores::query();
+            
+            if ($request->filled('search_nombre')) {
+                $proveedores->where('nombre', 'LIKE', '%' . $request->search_nombre . '%');
+            }
+
+            if ($request->filled('search_razonsocial')) {
+                $proveedores->where('razon_social', 'LIKE', '%' . $request->search_razonsocial . '%');
+            }
+
+            if ($request->filled('search_rfc')) {
+                $proveedores->where('rfc', 'LIKE', '%' . $request->search_rfc . '%');
+            }
+            
+            $proveedores = $proveedores->get();
+
+            return $proveedores;
 
         } catch (\Throwable $th) {            
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);            

@@ -24,10 +24,14 @@ const visibleRight = ref(false);
 const showspinner = ref(true);
 const btndisabled = ref(false);
 const dataArea = ref([]);
+const dataProveedor = ref([]);
 const msgerrors = ref([]);
 
 const searcharea = ref(''); 
 const banderaarea = ref(false);
+
+const searchproveedor = ref('');
+const banderaproveedor = ref(false);
 
 const size = ref({ label: 'Small', value: 'small' });
 
@@ -97,6 +101,7 @@ const submit = async () => {
             showspinner.value = true;
             btndisabled.value = false;
             form.reset();
+            visibleRight.value = false;
             router.reload({ only: ['Entradas'] });
             msgerrors.value  = [];
         } else {
@@ -193,6 +198,43 @@ const handleSelectionarea = (id, text) => {
         banderaarea.value = false;
     }, 100);
 };
+
+
+const SearchProveedor = async (text) => {
+    if (text) {
+        try {
+            let resp = await axios.get(route('search.proveedor', text));
+            dataProveedor.value = resp.data;
+        } catch (error) {
+            dataProveedor.value = error.response.data;
+        }
+    } else {
+        dataProveedor.value = [];
+        form.proveedor = '';
+        banderaproveedor.value = false;
+    }    
+}
+
+const handleSelectionproveedor = (id, text) => {
+    banderaproveedor.value = true;  
+    form.proveedor = id;
+    searchproveedor.value = text;
+    dataProveedor.value = [];
+
+    setTimeout( () => {
+        banderaproveedor.value = false;
+    }, 100);
+}
+
+let timeouproveedor = null;
+watch(searchproveedor, (newvalue) => {
+    if (banderaproveedor.value) return false;
+    
+    clearTimeout(timeouproveedor);
+    timeouproveedor = setTimeout(() => {
+        SearchProveedor(newvalue)
+    }, 500);
+});
 
 let timeouarea = null;
 watch(searcharea, (newvalue) => {
@@ -330,14 +372,16 @@ const ClearForm = () => {
                         />
                         <FieldError :message="msgerrors.no_orden" />
                     </div>
-                    <div>
-                        <InputLabel for="proveedor" value="Proveedor"/>
+                    <div class="relative">
+                        <InputLabel for="searchproveedor" value="Proveedor"/>
                         <TextInput
-                            id="proveedor"
-                            type="text"
+                            id="searchproveedor"
+                            type="search"
                             class="w-full mt-1"
-                            v-model="form.proveedor"
+                            placeholder="Buscar..."
+                            v-model="searchproveedor"
                         />
+                        <SearchResult v-if="searchproveedor" :id="'searchproveedor'" :data="dataProveedor" :label="'id'" :text="'nombre'" @select="handleSelectionproveedor" />
                         <FieldError :message="msgerrors.proveedor" />
                     </div>
                     <div>
