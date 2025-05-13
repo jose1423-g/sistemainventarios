@@ -127,7 +127,7 @@ const showError = (msg) => {
 const Edit = async (data) => {
      
     let resp = await axios.get(route('edit.entrada', data.id));
-    
+        console.log(resp);
         if (resp.data.result == 0) {
             showError(resp.data.msg);
         } else {
@@ -135,7 +135,8 @@ const Edit = async (data) => {
             visibleRight.value = true;
             form.id = resp.data.id;
             form.no_orden = resp.data.no_orden;
-            form.proveedor = resp.data.proveedor;
+            searchproveedor.value = resp.data.proveedor;
+            form.proveedor = resp.data.id_proveedor;
             form.fecha_compra = resp.data.fecha_compra;
             form.fecha_entrada = resp.data.fecha_entrada;
             form.area_solicitante = resp.data.area_solicitante;
@@ -148,12 +149,13 @@ const Edit = async (data) => {
             searcharea.value = resp.data.area 
 
             banderaarea.value = true;
+            banderaproveedor.value = true;
 
             setTimeout( () => {
                 banderaarea.value = false;
+                banderaproveedor.value = false;
             }, 100);
-        }
-    
+        }    
 }
 
 const Delete  = async (data) => {

@@ -40,7 +40,8 @@ const viewpdfentradas = async (data) => {
             windowFeatures,
         );    
     } catch (error) {
-        showError(error.data.msg)
+        console.log(error)
+        showError(error.response.data.msg)
     }
     
 }

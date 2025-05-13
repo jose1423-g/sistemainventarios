@@ -86,7 +86,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/searchentradas/{name}', [SearchController::class, 'SearchEntradas'])->name('search.entradas');
     Route::get('/searchpartidas/{name}', [SearchController::class, 'SearchPartidas'])->name('search.partidas');
     Route::get('/searchproductos/{name}', [SearchController::class, 'SearchProductos'])->name('search.productos');
-    Route::get('/searchproductos/{name}', [SearchController::class, 'SearchProveedor'])->name('search.proveedor');
+    Route::get('/searchproveedor/{name}', [SearchController::class, 'SearchProveedor'])->name('search.proveedor');
 
     Route::post('/searchentradatable', [SearchController::class, 'SearchEntradasTable'])->name('search.entrada.table');
     Route::post('/searchsalidatable', [SearchController::class, 'SearchSalidasTable'])->name('search.salida.table');

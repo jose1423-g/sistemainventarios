@@ -93,6 +93,7 @@ class EntradaController extends Controller
             ->select(
                 't1.id',
                 't1.no_orden',
+                't3.id as id_proveedor',
                 't3.nombre as proveedor',
                 't1.fecha_compra',
                 't1.fecha_entrada',
