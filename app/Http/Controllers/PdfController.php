@@ -66,7 +66,7 @@ class PdfController extends Controller
             $options->set('chroot', storage_path('app/public')); // << Aquí das acceso a esta carpeta
             $dompdf = new Dompdf($options);
             $dompdf->loadHtml($html);
-            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->setPaper('A4', 'landscape');
             $dompdf->render();
             
             $output = $dompdf->output();
@@ -80,7 +80,6 @@ class PdfController extends Controller
             return response()->json(['url' => $fileUrl]);
             
         } catch (\Throwable $th) {
-            return $th;
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal.'], 422);
         }
         
@@ -126,7 +125,7 @@ class PdfController extends Controller
             $options->set('chroot', storage_path('app/public')); // << Aquí das acceso a esta carpeta
             $dompdf = new Dompdf($options);
             $dompdf->loadHtml($html);
-            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->setPaper('A4', 'landscape');
             $dompdf->render();
             
             $output = $dompdf->output();
@@ -140,7 +139,6 @@ class PdfController extends Controller
             return response()->json(['url' => $fileUrl]);
 
         } catch (\Throwable $th) {
-            return $th;
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);
         }
     }

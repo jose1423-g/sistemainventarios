@@ -366,4 +366,24 @@ class SearchController extends Controller
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);            
         }
     }
-}
+
+    public function SearchDashboardEntradas ($name) {
+        try {
+            $entrada = Entradas::where('no_orden', 'LIKE', '%'.$name.'%')->get();
+            return $entrada;
+        } catch (\Throwable $th) {
+            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);            
+        }
+    }
+
+    public function SearchSalidasEntradas ($name) {
+        try {            
+
+            $salidas = Salidas::where('no_salida', 'LIKE', '%'.$name.'%')->get();
+            return $salidas;
+
+        } catch (\Throwable $th) {
+            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);            
+        }
+    }
+ }

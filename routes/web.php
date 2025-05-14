@@ -88,6 +88,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/searchproductos/{name}', [SearchController::class, 'SearchProductos'])->name('search.productos');
     Route::get('/searchproveedor/{name}', [SearchController::class, 'SearchProveedor'])->name('search.proveedor');
 
+    /* buscador dashboard */
+    Route::get('/searchdashboardentradas/{name}', [SearchController::class, 'SearchDashboardEntradas'])->name('search.dashboard.entrada');
+    Route::get('/searchdashboardsalidas/{name}', [SearchController::class, 'SearchSalidasEntradas'])->name('search.dashboard.salida');
+
+    /* buscador de las tablas */
     Route::post('/searchentradatable', [SearchController::class, 'SearchEntradasTable'])->name('search.entrada.table');
     Route::post('/searchsalidatable', [SearchController::class, 'SearchSalidasTable'])->name('search.salida.table');
     Route::post('/searchpartidatable', [SearchController::class, 'SearchPartidaTable'])->name('search.partida.table');
@@ -98,7 +103,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/searchproveedortable', [SearchController::class, 'SearchProveedorTable'])->name('search.proveedor.table');
 
     /* para los pdf */
-    Route::get('/descargar-pdf/{no_orden?}', [PdfController::class, 'descargar'])->name('descargar.pdf');
     Route::get('/pdf-entrada/{id}', [PdfController::class, 'ViewPdfEntrada'])->name('view.pdf.entrada');
     Route::get('/pdf-salida/{id}', [PdfController::class, 'ViewPdfSalida'])->name('view.pdf.salida');
 

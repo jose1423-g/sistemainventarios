@@ -24,12 +24,13 @@
             font-size: 18px;
             text-align: center;
             color: #333;
-            margin-top: 30px;
+            margin-top: 0px;
+            margin-bottom: 10px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            /* margin-top: 20px; */
             font-size: 12px;
         }
         th, td {
@@ -53,6 +54,9 @@
         .font_bold {
             font-weight: 600;
         }
+        .mb-10 {
+            margin-bottom: 10px;
+        }
 
     </style>
 </head>
@@ -68,7 +72,7 @@
                         No° de Salida
                     </th>
                     <th scope="col">
-                        No° de entrada
+                        No° de Orden
                     </th>
                     <th scope="col">
                         Fecha de Salida
@@ -92,9 +96,8 @@
     </div>
 
     {{-- table productos --}}
-    <div>
+    <div class="mb-10">
         <h2>Productos</h2>
-
         <table>
             <thead>
                 <tr>
@@ -130,21 +133,16 @@
     {{-- nombre y frima --}}
     <div>
         <table>
-
             <tr>
                 <td class="font_bold">Area solcitante: <span>{{ $salida->area }}</span></td>
                 <td class="font_bold">Encargado: <span>{{ $salida->personal }}</span></td>
-            </tr>            
-
+            </tr>
             <tr>
                 <td colspan="2" class="pt-4">firma del encargado.</td>                
             </tr>
-
             <tr>
                 <td colspan="2" class="pt-4">Nombre y firma de quien recibe.</td>
-            </tr>
-
-            
+            </tr>            
         </table>
     </div>
 

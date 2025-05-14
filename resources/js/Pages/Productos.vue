@@ -462,7 +462,7 @@ const ClearForm = () => {
                         <FieldError :message="msgerrors.stock" />
                     </div>
                     <div>
-                        <InputLabel for="unidad" value="Unidad"/>
+                        <InputLabel for="unidad" value="Unidad de medida"/>
                         <TextInput
                             id="unidad"
                             type="text"
