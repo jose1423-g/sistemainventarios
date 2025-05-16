@@ -1,9 +1,11 @@
 <script setup>
 import AuthenLayout from '@/Layouts/AuthenLayout.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
+import Select from '@/Components/Select.vue';
 import Can from '@/Components/Can.vue';
 import SearchResult from '@/Components/SearchResult.vue';
 import FieldError from '@/Components/FieldError.vue';
@@ -18,22 +20,28 @@ import Toast from 'primevue/toast';
 import { useToast } from "primevue/usetoast";
 const toast = useToast();
 
-
 const visibleRight = ref(false);
 const showspinner = ref(true);
 const btndisabled = ref(false);
 const dataArea = ref([]);
+const dataProveedor = ref([]);
 const msgerrors = ref([]);
 
 const searcharea = ref(''); 
 const banderaarea = ref(false);
 
+const searchproveedor = ref('');
+const banderaproveedor = ref(false);
+
 const size = ref({ label: 'Small', value: 'small' });
 
-defineProps({
+const props = defineProps({
     Entradas: {
         type: Array,
-    }
+    },
+    Areas: {
+        type: Array,
+    },
 })
 
 const form = useForm({ 
@@ -50,6 +58,38 @@ const form = useForm({
     total: '',
 });
 
+const formsearch = useForm({
+    search_noentrada: '',
+    search_fechacompra: '',
+    search_fechaentrada: '',
+    search_area: '',
+});
+
+const entradas = ref(props.Entradas);
+
+watch(() => props.Entradas, (newVal) => {
+    entradas.value = [...newVal];
+});
+
+const SearchEntradaTable = async () => {
+    try {
+        let resp = await axios.post(route('search.entrada.table'), formsearch);
+        entradas.value = resp.data;
+    } catch (error) {
+        showError(error.data.msg)
+    }
+}
+
+const ClearFormEntrada = async () => {
+
+    formsearch.search_noentrada = '';
+    formsearch.search_fechacompra = '';
+    formsearch.search_fechaentrada = '';
+    formsearch.search_area = '';  
+
+    await SearchEntradaTable();
+
+}
 
 const submit = async () => {
     showspinner.value = false;
@@ -61,6 +101,7 @@ const submit = async () => {
             showspinner.value = true;
             btndisabled.value = false;
             form.reset();
+            visibleRight.value = false;
             router.reload({ only: ['Entradas'] });
             msgerrors.value  = [];
         } else {
@@ -86,7 +127,7 @@ const showError = (msg) => {
 const Edit = async (data) => {
      
     let resp = await axios.get(route('edit.entrada', data.id));
-    
+        console.log(resp);
         if (resp.data.result == 0) {
             showError(resp.data.msg);
         } else {
@@ -94,7 +135,8 @@ const Edit = async (data) => {
             visibleRight.value = true;
             form.id = resp.data.id;
             form.no_orden = resp.data.no_orden;
-            form.proveedor = resp.data.proveedor;
+            searchproveedor.value = resp.data.proveedor;
+            form.proveedor = resp.data.id_proveedor;
             form.fecha_compra = resp.data.fecha_compra;
             form.fecha_entrada = resp.data.fecha_entrada;
             form.area_solicitante = resp.data.area_solicitante;
@@ -107,12 +149,13 @@ const Edit = async (data) => {
             searcharea.value = resp.data.area 
 
             banderaarea.value = true;
+            banderaproveedor.value = true;
 
             setTimeout( () => {
                 banderaarea.value = false;
+                banderaproveedor.value = false;
             }, 100);
-        }
-    
+        }    
 }
 
 const Delete  = async (data) => {
@@ -158,6 +201,43 @@ const handleSelectionarea = (id, text) => {
     }, 100);
 };
 
+
+const SearchProveedor = async (text) => {
+    if (text) {
+        try {
+            let resp = await axios.get(route('search.proveedor', text));
+            dataProveedor.value = resp.data;
+        } catch (error) {
+            dataProveedor.value = error.response.data;
+        }
+    } else {
+        dataProveedor.value = [];
+        form.proveedor = '';
+        banderaproveedor.value = false;
+    }    
+}
+
+const handleSelectionproveedor = (id, text) => {
+    banderaproveedor.value = true;  
+    form.proveedor = id;
+    searchproveedor.value = text;
+    dataProveedor.value = [];
+
+    setTimeout( () => {
+        banderaproveedor.value = false;
+    }, 100);
+}
+
+let timeouproveedor = null;
+watch(searchproveedor, (newvalue) => {
+    if (banderaproveedor.value) return false;
+    
+    clearTimeout(timeouproveedor);
+    timeouproveedor = setTimeout(() => {
+        SearchProveedor(newvalue)
+    }, 500);
+});
+
 let timeouarea = null;
 watch(searcharea, (newvalue) => {
     if (banderaarea.value) return false;
@@ -184,19 +264,68 @@ const ClearForm = () => {
     <AuthenLayout>
 
         <div class="p-5 bg-white border border-gray-200 rounded-sm shadow-md">
-            <h3 class="mb-5 text-2xl font-bold text-gray-900">Entradas</h3>
-            
-            <div class="flex justify-end mb-5">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-2xl font-bold text-gray-900">Entradas</h3>
                 <PrimaryButton type="button" @click="ClearForm">
                     <div class="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="mr-2 size-5">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v2.5h-2.5a.75.75 0 0 0 0 1.5h2.5v2.5a.75.75 0 0 0 1.5 0v-2.5h2.5a.75.75 0 0 0 0-1.5h-2.5v-2.5Z" clip-rule="evenodd" />
                         </svg>
-                        <span>Agregar</span>                    
+                        <span>Agregar</span>
                     </div>
                 </PrimaryButton>
             </div>
-            <DataTable :value="Entradas" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+            <!-- buscador -->         
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-3 mb-3">
+                <div>
+                    <InputLabel for="search_noentrada" value="No° entrada"/>
+                    <TextInput
+                        id="search_noentrada"
+                        type="search"
+                        class="w-full mt-1"
+                        v-model="formsearch.search_noentrada"
+                    />
+                </div>
+                <div>
+                    <InputLabel for="search_fechacompra" value="Fecha de compra"/>
+                    <TextInput
+                        id="search_fechacompra"
+                        type="date"
+                        class="min-w-full mt-1"
+                        v-model="formsearch.search_fechacompra"
+                    />
+                </div>
+                <div>
+                    <InputLabel for="search_fechaentrada" value="Fecha de entrada"/>
+                    <TextInput
+                        id="search_fechaentrada"
+                        type="date"
+                        class="w-full mt-1"
+                        v-model="formsearch.search_fechaentrada"
+                    />
+                </div>
+                <div>
+                    <InputLabel for="search_area" value="Area"/>
+                    <Select
+                        id="search_area"                            
+                        class="w-full mt-1"
+                        :data="Areas"
+                        :label="'id'"
+                        :text="'area'"
+                        v-model="formsearch.search_area"
+
+                    />
+                </div>
+            </div>                
+            <div class="flex justify-end space-x-3 mb-5">
+                <SecondaryButton type="button" @click="ClearFormEntrada">Clear</SecondaryButton>
+                <PrimaryButton type="button" @click="SearchEntradaTable">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                        <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
+                    </svg>
+                </PrimaryButton>
+            </div>            
+            <DataTable :value="entradas" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                 <Column field="no_orden" header="No° Entrada"></Column>
                 <Column field="fecha_compra" header="Fecha de compra"></Column>
                 <Column field="fecha_entrada" header="Fecha de entrada"></Column>
@@ -245,14 +374,16 @@ const ClearForm = () => {
                         />
                         <FieldError :message="msgerrors.no_orden" />
                     </div>
-                    <div>
-                        <InputLabel for="proveedor" value="Proveedor"/>
+                    <div class="relative">
+                        <InputLabel for="searchproveedor" value="Proveedor"/>
                         <TextInput
-                            id="proveedor"
-                            type="text"
+                            id="searchproveedor"
+                            type="search"
                             class="w-full mt-1"
-                            v-model="form.proveedor"
+                            placeholder="Buscar..."
+                            v-model="searchproveedor"
                         />
+                        <SearchResult v-if="searchproveedor" :id="'searchproveedor'" :data="dataProveedor" :label="'id'" :text="'nombre'" @select="handleSelectionproveedor" />
                         <FieldError :message="msgerrors.proveedor" />
                     </div>
                     <div>

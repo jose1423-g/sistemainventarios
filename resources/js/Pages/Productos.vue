@@ -3,6 +3,7 @@ import AuthenLayout from '@/Layouts/AuthenLayout.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import InputLabel from '@/Components/InputLabel.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import InputFile from '@/Components/InputFile.vue';
 import SearchResult from '@/Components/SearchResult.vue';
@@ -20,7 +21,7 @@ import Toast from 'primevue/toast';
 import { useToast } from "primevue/usetoast";
 const toast = useToast();
 
-defineProps({
+const props = defineProps({
     Productos: {
         type: Array,
         default: []
@@ -45,6 +46,8 @@ const banderapatida = ref(false);
 const searchentrada = ref('');
 const banderaentrada = ref(false);
 
+const fileinput = ref(null);
+
 
 const size = ref({ label: 'Small', value: 'small' });
 
@@ -60,7 +63,31 @@ const form = useForm({
     img: '',
 });
 
-const fileinput = ref(null);
+const formsearch = useForm({
+    search_product: '',
+    search_nopartida: '',
+});
+
+const productos = ref(props.Productos);
+
+watch(() => props.Productos, (newVal) => {
+    productos.value = [...newVal];
+});
+
+const SearchProductTable = async () => {
+    try {
+        let resp = await axios.post(route('search.product.table'), formsearch);
+        productos.value = resp.data;
+    } catch (error) {
+        showError(error.response.data.msg)
+    }
+}
+
+const ClearFormProduct = async () => {
+    formsearch.reset();
+    await SearchProductTable();
+}
+
 
 const submit = async () => {    
     
@@ -103,7 +130,7 @@ const submit = async () => {
             btndisabled.value = false;
         }        
     } catch (error) {
-        showspinner.value = false;
+        showspinner.value = true;
         btndisabled.value = false;
         msgerrors.value = error.response.data.errors;
     }       
@@ -201,7 +228,7 @@ const SearchPartidas = async (searchpartida) => {
             let resp = await axios.get(route('search.partidas', searchpartida));
             dataPartidas.value = resp.data;
         } catch (error) {
-            showError(error.response.data.msg);
+            dataPartidas.value = error.response.data;
         }
     } else {
         dataPartidas.value = [];
@@ -300,10 +327,9 @@ const ClearForm = () => {
 
     <AuthenLayout>
 
-        <div class="p-5 bg-white border border-gray-200 rounded-sm shadow-md">
-            <h3 class="mb-5 text-2xl font-bold text-gray-900">Productos</h3>
-            
-            <div class="flex justify-end mb-5">
+        <div class="p-5 bg-white border border-gray-200 rounded-sm shadow-md">                    
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-2xl font-bold text-gray-900">Productos</h3>
                 <PrimaryButton type="button" @click="ClearForm">
                     <div class="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="mr-2 size-5">
@@ -313,7 +339,39 @@ const ClearForm = () => {
                     </div>
                 </PrimaryButton>
             </div>
-            <DataTable :value="Productos" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+            <!-- Buscador -->
+            <div>
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-3 mb-3">
+                    <div>
+                        <InputLabel for="search_product" value="Producto"/>
+                        <TextInput
+                            id="search_product"
+                            type="search"
+                            class="w-full mt-1"
+                            v-model="formsearch.search_product"
+                        />
+                    </div>
+                    <div>
+                        <InputLabel for="search_nopartida" value="No° de partida"/>
+                        <TextInput
+                            id="search_nopartida"
+                            type="search"
+                            class="w-full mt-1"
+                            v-model="formsearch.search_nopartida"
+                        />
+                    </div>
+                </div>                
+                <div class="flex justify-end space-x-3 mb-5">
+                    <SecondaryButton type="button" @click="ClearFormProduct">Clear</SecondaryButton>
+                    <PrimaryButton type="button" @click="SearchProductTable">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                            <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
+                        </svg>
+                    </PrimaryButton>
+                </div>                
+            </div>
+
+            <DataTable :value="productos" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                 <Column field="nombre" header="Producto"></Column>
                 <Column field="no_partida" header="No° Partida"></Column>
                 <Column field="no_orden" header="No° orden de compra"></Column>
@@ -404,7 +462,7 @@ const ClearForm = () => {
                         <FieldError :message="msgerrors.stock" />
                     </div>
                     <div>
-                        <InputLabel for="unidad" value="Unidad"/>
+                        <InputLabel for="unidad" value="Unidad de medida"/>
                         <TextInput
                             id="unidad"
                             type="text"
@@ -417,7 +475,7 @@ const ClearForm = () => {
                         <InputLabel for="precio" value="Precio"/>
                         <TextInput
                             id="precio"
-                            type="text"
+                            type="number"
                             class="w-full mt-1"
                             v-model="form.precio"
                         />
@@ -428,6 +486,7 @@ const ClearForm = () => {
                         <InputFile
                             ref="fileinput" 
                             :id="'img'" 
+                            :typefiles="['jpeg', 'png', 'webp']"
                             class="block w-full mt-1" 
                             v-model="form.img"
                         />

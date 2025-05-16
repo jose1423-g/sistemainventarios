@@ -2,13 +2,14 @@
 import AuthenLayout from '@/Layouts/AuthenLayout.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import DangerButton from '@/Components/DangerButton.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Select from '@/Components/Select.vue';
 import Can from '@/Components/Can.vue';
 import FieldError from '@/Components/FieldError.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -25,7 +26,7 @@ const msgerrors = ref([]);
 
 const size = ref({ label: 'Small', value: 'small' });
 
-defineProps({
+const props = defineProps({
     Areas: {
         type: Array,
         default: []
@@ -39,6 +40,30 @@ const form = useForm({
     area: '',
     activa: 1,
 });
+
+const formsearch = useForm({
+    search_area: '',
+});
+
+const areas = ref(props.Areas);
+
+watch(() => props.Areas, (newVal) => {
+    areas.value = [...newVal];
+});
+
+const SearchAreaTable = async () => {
+    try {
+        let resp = await axios.post(route('search.area.table'), formsearch);
+        areas.value = resp.data;
+    } catch (error) {
+        showError(error.response.data.msg)
+    }
+}
+
+const ClearFormArea = async () => {
+    formsearch.reset(); 
+    await SearchAreaTable();
+}
 
 const submit = async () => {
     showspinner.value = false;
@@ -119,9 +144,8 @@ const ClearForm = () => {
     <AuthenLayout> 
         
         <div class="p-5 bg-white border border-gray-200 rounded-sm shadow-md">
-            <h3 class="mb-5 text-2xl font-bold text-gray-900">Area</h3>
-            
-            <div class="flex justify-end mb-5">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-2xl font-bold text-gray-900">Area</h3>
                 <PrimaryButton type="button" @click="ClearForm">
                     <div class="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="mr-2 size-5">
@@ -131,7 +155,29 @@ const ClearForm = () => {
                     </div>
                 </PrimaryButton>                
             </div>
-            <DataTable :value="Areas" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+            <!-- buscador -->
+            <div>
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-3 mb-3">
+                    <div>
+                        <InputLabel for="search_area" value="Area"/>
+                        <TextInput
+                            id="search_area"
+                            type="search"
+                            class="w-full mt-1"
+                            v-model="formsearch.search_area"
+                        />
+                    </div>
+                </div>                
+                <div class="flex justify-end space-x-3 mb-5">
+                    <SecondaryButton type="button" @click="ClearFormArea">Clear</SecondaryButton>
+                    <PrimaryButton type="button" @click="SearchAreaTable">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                            <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
+                        </svg>
+                    </PrimaryButton>
+                </div>
+            </div>
+            <DataTable :value="areas" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                 <Column field="area" header="Area"></Column>
                 <Column header="Activa">
                     <template #body="rowdata">

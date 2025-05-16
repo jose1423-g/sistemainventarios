@@ -9,6 +9,7 @@ use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\ProductosController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\ProveedoresController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Foundation\Application;
@@ -36,6 +37,8 @@ Route::get('/salida', [SalidaController::class, 'Showview'])->middleware(['auth'
 Route::get('/area', [AreaController::class, 'Showview'])->middleware(['auth', 'verified'])->name('area');
 
 Route::get('/personal', [PersonalController::class, 'Showview'])->middleware(['auth', 'verified'])->name('personal');
+
+Route::get('/proveedores', [ProveedoresController::class, 'Index'])->middleware(['auth', 'verified'])->name('proveedores');
 
 Route::get('/partidapresupuestal', [PartidaPresupuestalController::class, 'Showview'])->middleware(['auth', 'verified'])->name('partidapresupuestal');
 
@@ -73,15 +76,33 @@ Route::middleware('auth')->group(function () {
     Route::post('/storeusuario', [UsuariosController::class, 'Store'])->name('store.usuario');
     Route::get('/editusuario/{id}', [UsuariosController::class, 'Edit'])->name('edit.usuario');
     Route::delete('/deleteusuario/{id}', [UsuariosController::class, 'Delete'])->name('delete.usuario');
+    /* Proveedores */
+    Route::post('/storeproveedor', [ProveedoresController::class, 'Store'])->name('store.proveedor');
+    Route::get('/editproveedor/{id}', [ProveedoresController::class, 'Edit'])->name('edit.proveedor');
+    Route::delete('/deleteproveedor/{id}', [ProveedoresController::class, 'Delete'])->name('delete.proveedor');
 
     /* buscador */
     Route::get('/searcharea/{name}', [SearchController::class, 'SearchArea'])->name('search.area');
     Route::get('/searchentradas/{name}', [SearchController::class, 'SearchEntradas'])->name('search.entradas');
     Route::get('/searchpartidas/{name}', [SearchController::class, 'SearchPartidas'])->name('search.partidas');
     Route::get('/searchproductos/{name}', [SearchController::class, 'SearchProductos'])->name('search.productos');
+    Route::get('/searchproveedor/{name}', [SearchController::class, 'SearchProveedor'])->name('search.proveedor');
+
+    /* buscador dashboard */
+    Route::get('/searchdashboardentradas/{name}', [SearchController::class, 'SearchDashboardEntradas'])->name('search.dashboard.entrada');
+    Route::get('/searchdashboardsalidas/{name}', [SearchController::class, 'SearchSalidasEntradas'])->name('search.dashboard.salida');
+
+    /* buscador de las tablas */
+    Route::post('/searchentradatable', [SearchController::class, 'SearchEntradasTable'])->name('search.entrada.table');
+    Route::post('/searchsalidatable', [SearchController::class, 'SearchSalidasTable'])->name('search.salida.table');
+    Route::post('/searchpartidatable', [SearchController::class, 'SearchPartidaTable'])->name('search.partida.table');
+    Route::post('/searchpersonaltable', [SearchController::class, 'SearchPersonalTable'])->name('search.personal.table');
+    Route::post('/searchusertable', [SearchController::class, 'SearchUsersTable'])->name('search.users.table');
+    Route::post('/searchareatable', [SearchController::class, 'SearchAreaTable'])->name('search.area.table');
+    Route::post('/searchproducttable', [SearchController::class, 'SearchProductTable'])->name('search.product.table');
+    Route::post('/searchproveedortable', [SearchController::class, 'SearchProveedorTable'])->name('search.proveedor.table');
 
     /* para los pdf */
-    Route::get('/descargar-pdf/{no_orden?}', [PdfController::class, 'descargar'])->name('descargar.pdf');
     Route::get('/pdf-entrada/{id}', [PdfController::class, 'ViewPdfEntrada'])->name('view.pdf.entrada');
     Route::get('/pdf-salida/{id}', [PdfController::class, 'ViewPdfSalida'])->name('view.pdf.salida');
 

@@ -10,6 +10,10 @@ defineProps({
         type: String,
         required: false
     },
+    typefiles: {
+        type: Array,
+        required: false,
+    },
 })
 
 const input = ref(null);
@@ -37,7 +41,7 @@ defineExpose({ Clearfilename })
         <label :for="id" class="flex-none px-3 py-2 text-sm font-medium text-gray-200 bg-gray-900 rounded-l cursor-pointer hover:bg-gray-500">
             choose file
         </label>
-        <input ref="input" type="file" :id="id" class="hidden" @change="GetNameFile">
+        <input ref="input" type="file" :accept="typefiles" :id="id" class="hidden" @change="GetNameFile">
         <span class="w-full px-4 py-2 text-sm text-gray-600 truncate bg-gray-100 border-gray-300 rounded-r ">
             {{ filename }}
         </span>

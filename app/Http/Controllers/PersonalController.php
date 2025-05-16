@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+
+use App\Models\Areas;
 use App\Models\Personal;
 use App\Models\Personal_area;
 use Illuminate\Http\Request;
@@ -9,7 +11,7 @@ use Inertia\Inertia;
 class PersonalController extends Controller
 {
     public function Showview () {
-
+        $areas = Areas::all();
         $personal = Personal::from('personal as t1')
         ->leftJoin('personal_area as t2', 't1.id', '=', 't2.fk_personal')
         ->leftJoin('areas as t3', 't2.fk_area', '=', 't3.id')
@@ -22,7 +24,8 @@ class PersonalController extends Controller
         ->get();
         return Inertia::render('Personal', 
             [
-                'Personal' => $personal
+                'Personal' => $personal,
+                'Areas' => $areas,
             ]
         );
     }

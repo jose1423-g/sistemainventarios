@@ -80,6 +80,7 @@ class UsuariosController extends Controller
                 't1.id',
                 't1.fk_rol',
                 't1.fk_usuario',
+                't2.email',
                 't2.name',
             )
             ->where('t1.id', $id)

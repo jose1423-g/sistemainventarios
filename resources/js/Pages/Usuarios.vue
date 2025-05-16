@@ -2,12 +2,13 @@
 import AuthenLayout from '@/Layouts/AuthenLayout.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import DangerButton from '@/Components/DangerButton.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Can from '@/Components/Can.vue'
 import Select from '@/Components/Select.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
-import { ref, onMounted } from 'vue';
+import { ref, watch } from 'vue';
 
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -18,7 +19,7 @@ import { useToast } from 'primevue/usetoast';
 import FieldError from '@/Components/FieldError.vue';
 const toast = useToast();
 
- defineProps({
+const props = defineProps({
     users:{
         type:Array,
         default: []
@@ -52,6 +53,32 @@ const form = useForm({
     fk_rol: '', 
 });
 
+const formsearch = useForm({
+    search_nombre: '',
+    search_email: '',
+    search_rol: '',
+});
+
+const user = ref(props.users);
+
+watch(() => props.users, (newVal) => {
+    user.value = [...newVal];
+});
+
+const SearchUserTable = async () => {
+    try {
+        let resp = await axios.post(route('search.users.table'), formsearch);
+        user.value = resp.data;
+    } catch (error) {
+        showError(error.data.msg)
+    }
+}
+
+const ClearFormUser = async () => {
+    formsearch.reset(); 
+    await SearchUserTable();
+}
+
 const submit = async () => {
     showspinner.value = false;
     btndisabled.value = true;
@@ -81,15 +108,15 @@ const Edit = async (data) => {
     let resp = await axios.get(route('edit.usuario', data.id));
     if(resp.data.result == 0){
         showError(resp.data.msg);
-        }
-        else{
-            form.id = data.id;
-            form.name = data.name;
-            form.email = data.email;
-            form.password = '';
-            form.password_confirmation = '';
-            visibleRight.value = true;
-        }
+    }else{
+        form.id = resp.data.id;
+        form.name = resp.data.name;
+        form.email = resp.data.email;
+        form.password = '';
+        form.password_confirmation = '';
+        form.fk_rol = resp.data.fk_rol;
+        visibleRight.value = true;
+    }
 }
 
 const Delete = async (data) => {
@@ -120,8 +147,9 @@ const ClearForm = () => {
 
     <AuthenLayout>
         <div class="p-5 bg-white border border-gray-200 rounded-sm shadow-md">
-            <h3 class="mb-5 text-2xl font-bold text-gray-900">Administracion de roles de usuarios</h3>
-            <div class="flex justify-end mb-5">
+
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-2xl font-bold text-gray-900">Administracion de usuarios</h3>
                 <PrimaryButton type="button" @click="ClearForm">
                     <div class="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="mr-2 size-5">
@@ -131,8 +159,50 @@ const ClearForm = () => {
                     </div>
                 </PrimaryButton>
             </div>
+            <!-- Buscador -->
+            <div>
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-3 mb-3">
+                    <div>
+                        <InputLabel for="search_nombre" value="Nombre"/>
+                        <TextInput
+                            id="search_nombre"
+                            type="search"
+                            class="w-full mt-1"
+                            v-model="formsearch.search_nombre"
+                        />
+                    </div>
+                    <div>
+                        <InputLabel for="search_email" value="Email"/>
+                        <TextInput
+                            id="search_email"
+                            type="search"
+                            class="w-full mt-1"
+                            v-model="formsearch.search_email"
+                        />
+                    </div>
+                    <div>
+                        <InputLabel for="search_rol" value="Area"/>
+                        <Select
+                            id="search_rol"
+                            class="min-w-full mt-1"
+                            :data="roles"
+                            :label="'id'"
+                            :text="'nombre_rol'"
+                            v-model="formsearch.search_rol"
+                        />
+                    </div>
+                </div>                
+                <div class="flex justify-end space-x-3 mb-5">
+                    <SecondaryButton type="button" @click="ClearFormUser">Clear</SecondaryButton>
+                    <PrimaryButton type="button" @click="SearchUserTable">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                            <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
+                        </svg>
+                    </PrimaryButton>
+                </div>                
+            </div>
                         
-            <DataTable :value="users" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+            <DataTable :value="user" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                 <Column field="nombre_rol" header="Roles"></Column>
                 <Column field="name" header="Nombre"></Column>
                 <Column field="email" header="Correo"></Column>

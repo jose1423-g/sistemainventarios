@@ -2,12 +2,13 @@
 import AuthenLayout from '@/Layouts/AuthenLayout.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import DangerButton from '@/Components/DangerButton.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import TextArea from '@/Components/TextArea.vue';
 import Can from '@/Components/Can.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -18,7 +19,7 @@ import { useToast } from 'primevue/usetoast';
 import FieldError from '@/Components/FieldError.vue';
 const toast = useToast();
 
-defineProps({
+const props = defineProps({
     partida:{
         type:Array,
         default: []
@@ -38,6 +39,34 @@ const form = useForm({
     nombre: '',
     descripcion: '',
 });
+
+const formsearch = useForm({
+    search_nopartida: '',
+    search_nombre: '',
+});
+
+const partidas = ref(props.partida);
+
+watch(() => props.partida, (newVal) => {
+    partidas.value = [...newVal];
+});
+
+const SearchPartidasTable = async () => {
+    try {
+        let resp = await axios.post(route('search.partida.table'), formsearch);
+        partidas.value = resp.data;
+    } catch (error) {
+        showError(error.data.msg)
+    }
+}
+
+const ClearFormPartidas = async () => {
+
+    formsearch.search_nopartida = '';
+    formsearch.search_nombre = '';    
+
+    await SearchPartidasTable();
+}
 
 const submit = async () => {
     showspinner.value = false;
@@ -116,9 +145,8 @@ const ClearForm = () => {
     <AuthenLayout>
 
         <div class="p-5 bg-white border border-gray-200 rounded-sm shadow-md">
-            <h3 class="mb-5 text-2xl font-bold text-gray-900">Partida Presupuestal</h3>
-            
-            <div class="flex justify-end mb-5">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-2xl font-bold text-gray-900">Partida Presupuestal</h3>
                 <PrimaryButton type="button" @click="ClearForm">
                     <div class="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="mr-2 size-5">
@@ -128,8 +156,39 @@ const ClearForm = () => {
                     </div>
                 </PrimaryButton>
             </div>
+            <!-- buscador -->
+            <div>
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-3 mb-3">
+                    <div>
+                        <InputLabel for="search_nopartida" value="No° de partida"/>
+                        <TextInput
+                            id="search_nopartida"
+                            type="search"
+                            class="w-full mt-1"
+                            v-model="formsearch.search_nopartida"
+                        />
+                    </div>
+                    <div>
+                        <InputLabel for="search_nombre" value="Nombre"/>
+                        <TextInput
+                            id="search_nombre"
+                            type="search"
+                            class="min-w-full mt-1"
+                            v-model="formsearch.search_nombre"
+                        />
+                    </div>
+                </div>                
+                <div class="flex justify-end space-x-3 mb-5">
+                    <SecondaryButton type="button" @click="ClearFormPartidas">Clear</SecondaryButton>
+                    <PrimaryButton type="button" @click="SearchPartidasTable">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                            <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
+                        </svg>
+                    </PrimaryButton>
+                </div>
+            </div>
                         
-            <DataTable :value="partida" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+            <DataTable :value="partidas" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                 <Column field="no_partida" header="No° Partida"></Column>
                 <Column field="nombre" header="nombre"></Column>
                 <Column header="Acciones">

@@ -137,6 +137,14 @@
                             Personal
                     </ResponsiveNavLink>
                 </li>
+                <li>
+                    <ResponsiveNavLink
+                            :href="route('proveedores')"
+                            :active="route().current('proveedores')"
+                        >
+                            Proveedores
+                    </ResponsiveNavLink>
+                </li>
                 <Can :roles="['Admin']">
                     <li>
                         <ResponsiveNavLink

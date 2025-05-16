@@ -24,7 +24,8 @@
             font-size: 18px;
             text-align: center;
             color: #333;
-            margin-top: 30px;
+            margin-top: 0px;
+            margin-bottom: 10px;
         }
         table {
             width: 100%;
@@ -65,7 +66,7 @@
             <thead>
                 <tr>
                     <th scope="col">
-                        No° de Entrada
+                        No° de Orden
                     </th>
                     <th scope="col">
                         Proveedor
@@ -125,13 +126,13 @@
                         {{ $entrada->cantidad_piezas }}
                     </td>
                     <td>
-                        {{ $entrada->precio_unitario }}
+                        ${{ $entrada->precio_unitario }}
                     </td>
                     <td>
-                        {{ $entrada->iva }}
+                        {{ $entrada->iva }}%
                     </td>
                     <td>
-                        {{ $entrada->total }}
+                        ${{ $entrada->total }}
                     </td>
                 </tr>
             </tbody>
@@ -152,7 +153,7 @@
                         stock
                     </th>
                     <th scope="col">
-                        Unidad
+                        Unidad de Medida
                     </th>
                     <th scope="col">
                         Precio
@@ -175,7 +176,7 @@
                             {{ $item->unidad }}
                         </td>
                         <td>
-                            {{ $item->precio }}
+                            ${{ $item->precio }}
                         </td>
                         <td>
                             <img src="{{ $item->img }}" class="imagen-producto" alt="img produto">                            
@@ -196,11 +197,11 @@
             </tr>            
 
             <tr>
-                <td colspan="2" class="pt-4">firma del encargado.</td>                
+                <td colspan="2" class="pt-4">firma del encargado.</td>
             </tr>
 
             <tr>
-                <td colspan="2" class="pt-4">Nombre y firma de quien recibe.</td>                
+                <td colspan="2" class="pt-4">Nombre y firma de quien recibe.</td>
             </tr>
             
         </table>

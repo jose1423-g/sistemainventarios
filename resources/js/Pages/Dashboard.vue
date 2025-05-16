@@ -1,12 +1,14 @@
 <script setup>
 import AuthenLayout from '@/Layouts/AuthenLayout.vue'
+import TextInput from '@/Components/TextInput.vue';
 import { Head } from '@inertiajs/vue3';
 import axios from 'axios';
-import {ref } from 'vue';
+import { ref, watch } from 'vue';
 import Toast from 'primevue/toast';
 import { useToast } from "primevue/usetoast";
 const toast = useToast();
-
+const searchentrada = ref('')
+const searchsalida = ref('')
 
 const props = defineProps({
     entradas: {
@@ -26,7 +28,8 @@ const props = defineProps({
 // Método para mostrar el PDF
 const urlpdf = ref('')
 let msg = '';
-const viewpdfentradas = async (data) => { 
+const viewpdfentradas = async (data, event = null) => {
+    if (event) event.preventDefault(); // prevenir recarga
     showInfo(msg = 'Por favor, espere. Estamos preparando su PDF para visualizarlo.');
     try {
         let response = await axios.get(route('view.pdf.entrada', data.id));
@@ -40,12 +43,13 @@ const viewpdfentradas = async (data) => {
             windowFeatures,
         );    
     } catch (error) {
-        showError(error.data.msg)
+        showError(error.response.data.msg)
     }
     
 }
 
-const downloadpdfentradas = async (data) => {  
+const downloadpdfentradas = async (data, event = null) => {  
+    if (event) event.preventDefault(); // prevenir recarga
     try {
         if (confirm('¿Desea proceder con la descarga del archivo PDF correspondiente a la entrada?')) {
             showInfo(msg = 'Por favor, espere. Estamos preparando su PDF de entrada para la descarga.')
@@ -119,6 +123,64 @@ const showError = (msg) => {
     toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 3000 });
 };
 
+/* search entradas */
+const dataentradas = ref(props.datosEntradas)
+
+watch(() => props.datosEntradas, (newVal) => {
+    dataentradas.value = [...newVal];
+});
+
+const SearchEntrada = async (newarea) => {
+    if (newarea) {
+        try {
+            let resp = await axios.get(route('search.dashboard.entrada', newarea));
+            dataentradas.value = resp.data;
+        } catch (error) {
+            dataentradas.value = error.response.data;
+        }        
+    } else {        
+        dataentradas.value = [...props.datosEntradas];        
+    }    
+}
+
+let timeoutentrada = null;
+watch(searchentrada, (newvalue) => {
+
+    clearTimeout(timeoutentrada);
+    timeoutentrada = setTimeout(() => {
+        SearchEntrada(newvalue)
+    }, 500);
+});
+
+/* search salidas */
+const datasalidas = ref(props.datosSalidas)
+
+watch(() => props.datosSalidas, (newVal) => {
+    datasalidas.value = [...newVal];
+});
+
+const SearchSalida = async (newarea) => {
+    if (newarea) {
+        try {
+            let resp = await axios.get(route('search.dashboard.salida', newarea));
+            datasalidas.value = resp.data;
+        } catch (error) {
+            datasalidas.value = error.response.data;
+        }        
+    } else {        
+        datasalidas.value = [...props.datosSalidas];        
+    }    
+}
+
+let timeoutsalida = null;
+watch(searchsalida, (newvalue) => {
+
+    clearTimeout(timeoutsalida);
+    timeoutsalida = setTimeout(() => {
+        SearchSalida(newvalue)
+    }, 500);
+});
+
 </script>
 
 <template>
@@ -166,29 +228,24 @@ const showError = (msg) => {
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- <div class="absolute top-16 right-0 z-50 bg-white shadow-xl rounded-sm p-3 ">
-                <div class="flex items-center justify-center space-x-2 py-4 text-gray-600">
-                    <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor"
-                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
-                    </path>
-                    </svg>
-                    <span class="text-sm font-medium">Espere, estamos preparando tu PDF...</span>
-                </div>
-            </div> -->
+            </div>            
 
             <div class="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2">
                 <!-- Card de Consulta de Entradas -->
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                     <div class="p-5 border-b border-gray-200">
                         <h3 class="text-lg font-medium text-gray-800">Consultar Entradas</h3>
+                        <TextInput 
+                            id="searchentrada"
+                            type="search"
+                            placeholder="Numero de orden"
+                            class="mt-1 w-full"          
+                            v-model="searchentrada"                  
+                        />
                     </div>
                     <div class="p-6">
                         <div class="mb-4">
-                            <p class="text-gray-500 text-xs">Revise el historial de entradas de productos al inventario.</p>
+                            <p class="text-gray-500 text-xs">Historial de entradas de productos al inventario.</p>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="min-w-full bg-white">
@@ -200,17 +257,17 @@ const showError = (msg) => {
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
-                                    <tr v-for="entrada in datosEntradas" :key="entrada.no_orden" class="hover:bg-gray-50">
+                                    <tr v-for="entrada in dataentradas" :key="entrada.no_orden" class="hover:bg-gray-50">
                                         <td class="px-4 py-2 text-sm text-gray-500">{{ new Date(entrada.fecha_entrada).toLocaleDateString() }}</td>
                                         <td class="px-4 py-2 text-sm text-gray-900">{{ entrada.no_orden }}</td>
                                         <td class="px-4 py-2 text-sm text-center text-gray-500 space-x-3">                                        
-                                            <button @click="viewpdfentradas(entrada)" class="inline-flex items-center justify-center hover:text-blue-600">
+                                            <button type="button" @click.prevent="viewpdfentradas(entrada)" class="inline-flex items-center justify-center hover:text-blue-600">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                                                 </svg>
                                             </button>
-                                            <button @click="downloadpdfentradas(entrada)" class="inline-flex items-center justify-center hover:text-blue-600">
+                                            <button type="button" @click.prevent="downloadpdfentradas(entrada)" class="inline-flex items-center justify-center hover:text-blue-600">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                                                 </svg>
@@ -227,10 +284,17 @@ const showError = (msg) => {
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                     <div class="p-5 border-b border-gray-200">
                         <h3 class="text-lg font-medium text-gray-800">Consultar Salidas</h3>
+                        <TextInput 
+                            id="searchsalida"
+                            type="search"
+                            placeholder="Numero de orden"
+                            class="mt-1 w-full"          
+                            v-model="searchsalida"                  
+                        />
                     </div>
                     <div class="p-6">
                         <div class="mb-4">
-                            <p class="text-gray-500 text-xs">Revise el historial de salidas de productos del inventario.</p>
+                            <p class="text-gray-500 text-xs">Historial de salidas de productos del inventario.</p>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="min-w-full bg-white">
@@ -242,17 +306,17 @@ const showError = (msg) => {
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
-                                    <tr v-for="salida in datosSalidas" :key="salida.no_salida" class="hover:bg-gray-50">
+                                    <tr v-for="salida in datasalidas" :key="salida.no_salida" class="hover:bg-gray-50">
                                         <td class="px-4 py-2 text-sm text-gray-500">{{ new Date(salida.fecha_salida).toLocaleDateString() }}</td>
                                         <td class="px-4 py-2 text-sm text-gray-900">{{ salida.no_salida }}</td>
                                         <td class="px-4 py-2 text-sm text-gray-500 space-x-3">
-                                            <button @click="viewpdfsalidas(salida)" class="inline-flex items-center justify-center hover:text-blue-600">
+                                            <button type="button" @click.prevent="viewpdfsalidas(salida)" class="inline-flex items-center justify-center hover:text-blue-600">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                                                 </svg>
                                             </button>
-                                            <button @click="downloadpdfsalidas(salida)" class="inline-flex items-center justify-center hover:text-blue-600">
+                                            <button type="button" @click.prevent="downloadpdfsalidas(salida)" class="inline-flex items-center justify-center hover:text-blue-600">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                                                 </svg>

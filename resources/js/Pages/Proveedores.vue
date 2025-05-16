@@ -7,7 +7,6 @@ import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Select from '@/Components/Select.vue';
 import Can from '@/Components/Can.vue';
-import SearchResult from '@/Components/SearchResult.vue';
 import FieldError from '@/Components/FieldError.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
@@ -25,70 +24,61 @@ const showspinner = ref(true);
 const btndisabled = ref(false);
 const msgerrors = ref([]);
 
-const dataArea = ref([]);
-const searcharea = ref('');
-const banderaarea = ref(false);
-
 const size = ref({ label: 'Small', value: 'small' });
-const EsActivo = [{'id': 1, 'descripcion': 'Activa'}, {'id': 0, 'descripcion': 'Desactivada'}]
 
 const props = defineProps({
-    Personal: {
+    Proveedores: {
         type: Array,
         default: []
-    },
-    Areas: {
-        type: Array,
     }
-
 });
 
 const form = useForm({ 
     id: '',
     nombre: '',
-    fk_area: '',
-    activo: 1,
+    razon_social: '',
+    rfc: '',
+    telefono: '',
 });
-
 
 const formsearch = useForm({
     search_nombre: '',
-    search_area: '',
+    search_razonsocial: '',
+    search_rfc: '',
 });
 
-const personal = ref(props.Personal);
+const proveedores = ref(props.Proveedores);
 
-watch(() => props.Personal, (newVal) => {
-    personal.value = [...newVal];
+watch(() => props.Proveedores, (newVal) => {
+    proveedores.value = [...newVal];
 });
 
-const SearchPersonalTable = async () => {
+const SearchProveedorTable = async () => {
     try {
-        let resp = await axios.post(route('search.personal.table'), formsearch);
-        personal.value = resp.data;
+        let resp = await axios.post(route('search.proveedor.table'), formsearch);
+        proveedores.value = resp.data;
     } catch (error) {
-        showError(error.data.msg)
+        showError(error.response.data.msg)
     }
 }
 
-const ClearFormPersonal = async () => {
+const ClearFormProveedor = async () => {
     formsearch.reset(); 
-    await SearchPersonalTable();
+    await SearchProveedorTable();
 }
 
 const submit = async () => {
     showspinner.value = false;
-    btndisabled.value = true; 
+    btndisabled.value = true;
     try {
-        let resp = await axios.post(route('store.personal'), form);
+        let resp = await axios.post(route('store.proveedor'), form);
         if (resp.data.result == 1) {
             showSuccess(resp.data.msg)
             showspinner.value = true;
             btndisabled.value = false;
-            form.reset('id', 'nombre', 'fk_area');
-            searcharea.value = '';
+            form.reset();
             visibleRight.value = false;
-            router.reload({ only: ['Personal'] });
+            router.reload({ only: ['Proveedores'] });
         } else {
             showError(resp.data.msg)
             showspinner.value = true;
@@ -110,91 +100,57 @@ const showError = (msg) => {
 };
 
 const Edit = async (data) => {
+     
+    let resp = await axios.get(route('edit.proveedor', data.id));
     
-    let resp = await axios.get(route('edit.personal', data.id));
         if (resp.data.result == 0) {
             showError(resp.data.msg);
         } else {
             visibleRight.value = true;
             form.id = resp.data.id;
             form.nombre = resp.data.nombre;
-            form.fk_area = resp.data.area_id;
-            form.searcharea = resp.data.area;
-            form.activo = resp.data.activo;
+            form.razon_social = resp.data.razon_social;
+            form.rfc = resp.data.rfc;
+            form.telefono = resp.data.telefono;
         }
+    
 }
 
 const Delete  = async (data) => {
     
     if (confirm('¿Estas seguro de eliminar este registro?')) {
 
-        let resp = await axios.delete(route('delete.personal', data.id));    
+        let resp = await axios.delete(route('delete.proveedor', data.id));    
+    
         if (resp.data.result == 1) {
             showSuccess(resp.data.msg)
-            router.reload({ only: ['Personal'] });
+            router.reload({ only: ['Proveedores'] });
         } else {
             showError(resp.data.msg);            
         }
-
-    } else {        
+    } else {
         return false;
     }
-    
 }
-
-const SearchArea = async (newarea) => {
-    if (newarea) {
-        try {
-            let resp = await axios.get(route('search.area', newarea));
-            dataArea.value = resp.data;
-        } catch (error) {
-            dataArea.value = error.response.data;
-        }        
-    } else {
-        dataArea.value = [];
-        form.area = '';
-    }    
-}
-
-let timeoutarea = null;
-watch(searcharea, (newvalue) => {
-    if (banderaarea.value) return false;
-
-    clearTimeout(timeoutarea);
-    timeoutarea = setTimeout(() => {
-        SearchArea(newvalue)
-    }, 500);
-});
-
-const handleSelection = (id, text) => { 
-    banderaarea.value = true;   
-    form.fk_area = id;
-    searcharea.value = text;
-    dataArea.value = [];
-
-    setTimeout( () => {
-        banderaarea.value = false;
-    }, 100);
-};
 
 const ClearForm = () => {
     form.reset();
-    searcharea.value = '';
     msgerrors.value  = [];
     visibleRight.value = true;
 }
 
+
 </script>
 
 <template>
-    <Head title="Personal" />
+    <Head title="Partida presupuestal" />
 
 
-    <AuthenLayout>
-
+    <AuthenLayout> 
+        
         <div class="p-5 bg-white border border-gray-200 rounded-sm shadow-md">
             <div class="flex justify-between items-center mb-5">
-                <h3 class="text-2xl font-bold text-gray-900">Personal</h3>
+                <h3 class="text-2xl font-bold text-gray-900">Proveedores</h3>
                 <PrimaryButton type="button" @click="ClearForm">
                     <div class="flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="mr-2 size-5">
@@ -202,7 +158,7 @@ const ClearForm = () => {
                         </svg>
                         <span>Agregar</span>
                     </div>
-                </PrimaryButton>
+                </PrimaryButton>                
             </div>
             <!-- buscador -->
             <div>
@@ -211,49 +167,43 @@ const ClearForm = () => {
                         <InputLabel for="search_nombre" value="Nombre"/>
                         <TextInput
                             id="search_nombre"
-                            type="search"
+                            type="text"
                             class="w-full mt-1"
                             v-model="formsearch.search_nombre"
                         />
                     </div>
                     <div>
-                        <InputLabel for="search_area" value="Area"/>
-                        <Select
-                            id="search_area"
-                            class="min-w-full mt-1"
-                            :data="Areas"
-                            :label="'id'"
-                            :text="'area'"
-                            v-model="formsearch.search_area"
+                        <InputLabel for="search_razonsocial" value="Razon social"/>
+                        <TextInput
+                            id="search_razonsocial"
+                            type="text"
+                            class="w-full mt-1"
+                            v-model="formsearch.search_razonsocial"
+                        />
+                    </div>
+                    <div>
+                        <InputLabel for="search_rfc" value="Rfc"/>
+                        <TextInput
+                            id="search_rfc"
+                            type="text"
+                            class="w-full mt-1"
+                            v-model="formsearch.search_rfc"
                         />
                     </div>
                 </div>                
                 <div class="flex justify-end space-x-3 mb-5">
-                    <SecondaryButton type="button" @click="ClearFormPersonal">Clear</SecondaryButton>
-                    <PrimaryButton type="button" @click="SearchPersonalTable">
+                    <SecondaryButton type="button" @click="ClearFormProveedor">Clear</SecondaryButton>
+                    <PrimaryButton type="button" @click="SearchProveedorTable">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
                             <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" />
                         </svg>
                     </PrimaryButton>
                 </div>
             </div>
-            <DataTable :value="personal" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
+            <DataTable :value="proveedores" :size="size.value" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
                 <Column field="nombre" header="Nombre"></Column>
-                <Column field="area" header="Area"></Column>
-                <Column header="Activo">
-                    <template #body="rowdata">
-                        <template v-if="rowdata.data.activo == 1">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
-                            </svg>
-                        </template>
-                        <template v-else>
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-                                <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
-                            </svg>
-                        </template>
-                    </template>
-                </Column>
+                <Column field="razon_social" header="Razon social"></Column>
+                <Column field="rfc" header="RFC"></Column>
                 <Column header="Acciones">
                     <template #body="rowdata">
                         <div class="flex gap-2">
@@ -277,18 +227,18 @@ const ClearForm = () => {
                 </Column>
             </DataTable>
         </div>
-
+        
         <!-- alerta -->
         <Toast />
         
-        <Drawer v-model:visible="visibleRight" header="Personal" position="right" class="!w-[25rem]">
+        <Drawer v-model:visible="visibleRight" header="Proveedor" position="right" class="!w-[25rem]">
             <form @submit.prevent="submit">
                 <div class="grid grid-cols-1 gap-4">
                     <TextInput
                         id="id"
                         type="hidden"
                         v-model="form.id"
-                    />                                        
+                    />                    
                     <div>
                         <InputLabel for="nombre" value="Nombre"/>
                         <TextInput
@@ -299,34 +249,36 @@ const ClearForm = () => {
                         />
                         <FieldError :message="msgerrors.nombre" />
                     </div>
-                    <div class="relative">
-                        <InputLabel for="searcharea" value="Area"/>
-                        <TextInput
-                            id="searcharea"
-                            type="search"
-                            placeholder="Buscar..."
-                            class="w-full mt-1"
-                            v-model="searcharea"
-                        />
-                        <SearchResult v-if="searcharea" :data="dataArea" :id="'searcharea'" :label="'id'" :text="'area'" @select="handleSelection"/>
-                        <FieldError :message="msgerrors.fk_area" />
-                    </div>                    
-                    <TextInput
-                        id="area"
-                        type="hidden"
-                        v-model="form.area"
-                    />                      
                     <div>
-                        <InputLabel for="activo" value="Activo"/>
-                        <Select
-                            id="activo"                            
+                        <InputLabel for="razon_social" value="Razon social"/>
+                        <TextInput
+                            id="razon_social"
+                            type="text"
                             class="w-full mt-1"
-                            v-model="form.activo"
-                            :data="EsActivo"
-                            :label="'id'"
-                            :text="'descripcion'"
+                            v-model="form.razon_social"
                         />
+                        <FieldError :message="msgerrors.razon_social" />
                     </div>
+                    <div>
+                        <InputLabel for="rfc" value="Rfc"/>
+                        <TextInput
+                            id="rfc"
+                            type="text"
+                            class="w-full mt-1 uppercase"
+                            v-model="form.rfc"
+                        />
+                        <!-- <FieldError :message="msgerrors.rfc" /> -->
+                    </div>
+                    <div>
+                        <InputLabel for="telefono" value="Telefono"/>
+                        <TextInput
+                            id="telefono"
+                            type="number"
+                            class="w-full mt-1"
+                            v-model="form.telefono"
+                        />
+                        <!-- <FieldError :message="msgerrors.telefono" /> -->
+                    </div>                    
                 </div>                
                 
                 <div class="flex justify-end mt-5">

@@ -1,7 +1,5 @@
 <script setup>
 
-import { defineEmits } from 'vue';
-
 defineProps({
     id: {
         type: String,

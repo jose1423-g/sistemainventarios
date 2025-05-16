@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('entradas', function (Blueprint $table) {
             $table->id();
             $table->string('no_orden')->nullable();
-            $table->string('proveedor')->nullable();
+            $table->string('fk_proveedor')->nullable();
             $table->date('fecha_compra')->nullable();
             $table->date('fecha_entrada')->nullable();
             $table->string('area_solicitante')->nullable();
