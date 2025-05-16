@@ -130,7 +130,7 @@ const submit = async () => {
             btndisabled.value = false;
         }        
     } catch (error) {
-        showspinner.value = false;
+        showspinner.value = true;
         btndisabled.value = false;
         msgerrors.value = error.response.data.errors;
     }       
@@ -228,7 +228,7 @@ const SearchPartidas = async (searchpartida) => {
             let resp = await axios.get(route('search.partidas', searchpartida));
             dataPartidas.value = resp.data;
         } catch (error) {
-            showError(error.response.data.msg);
+            dataPartidas.value = error.response.data;
         }
     } else {
         dataPartidas.value = [];
@@ -486,6 +486,7 @@ const ClearForm = () => {
                         <InputFile
                             ref="fileinput" 
                             :id="'img'" 
+                            :typefiles="['jpeg', 'png', 'webp']"
                             class="block w-full mt-1" 
                             v-model="form.img"
                         />

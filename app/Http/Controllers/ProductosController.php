@@ -60,15 +60,68 @@ class ProductosController extends Controller
             'img.required' => 'El campo imagen es obligatorio',
         ]);
 
-        /* guarda la imagen con un nombre generado y unico */
-        $img_name = '';
-        if (!Storage::disk('public')->exists($request->img)) {
-            $img_name = $request->file('img')->store('img');
-        } else {
-            $img_name = $request->img;
-        }        
-        
         try {
+            
+            $imagen_up = $request->file('img');            
+            $nombreArchivo = '';
+
+            if ($imagen_up) {
+                // Detectar tipo MIME
+                $mime = $imagen_up->getMimeType();
+                
+                // Crear imagen según tipo
+                switch ($mime) {
+                    case 'image/jpeg':
+                        $imagen = imagecreatefromjpeg($imagen_up->getPathname());
+                        $extension = 'jpg';
+                        break;
+                    case 'image/png':
+                        $imagen = imagecreatefrompng($imagen_up->getPathname());
+                        $extension = 'png';
+                        break;
+                    case 'image/webp':
+                        $imagen = imagecreatefromwebp($imagen_up->getPathname());
+                        $extension = 'webp';
+                        break;
+                    default:
+                        return response()->json(['result' => 1, 'msg' => 'Formato de imagen no soportado']);
+                }
+
+                // Obtener tamaño original
+                $ancho_original = imagesx($imagen);
+                $alto_original = imagesy($imagen);
+
+                // Calcular tamaño proporcional para que encaje dentro de 200x200 sin deformarse
+                $relacion = min(600 / $ancho_original, 300 / $alto_original);
+                $nuevo_ancho = (int)($ancho_original * $relacion);
+                $nuevo_alto = (int)($alto_original * $relacion);
+
+                // Redimensionar proporcionalmente
+                $imagen_redimensionada = imagescale($imagen, $nuevo_ancho, $nuevo_alto);
+
+                // Genera un nombre único
+                $nombreArchivo = 'img/' . uniqid() . '.' . $extension;
+                $ruta = storage_path('app/public/' . $nombreArchivo);
+
+                // Guardar según formato
+                switch ($extension) {
+                    case 'jpg':
+                        imagejpeg($imagen_redimensionada, $ruta, 75);
+                        break;
+                    case 'png':
+                        imagepng($imagen_redimensionada, $ruta, 6);
+                        break;
+                    case 'webp':
+                        imagewebp($imagen_redimensionada, $ruta, 75);
+                        break;
+                }
+
+                // Limpiar memoria
+                imagedestroy($imagen);
+                imagedestroy($imagen_redimensionada);
+            } else {
+                $nombreArchivo = $request->img;
+            }
         
             $productos =  Productos::updateOrCreate(
                 ['id' => $request->id],
@@ -78,7 +131,7 @@ class ProductosController extends Controller
                     'stock' => $request->stock,
                     'unidad' => $request->unidad,
                     'precio' => $request->precio, 
-                    'img' => $img_name,
+                    'img' => $nombreArchivo,
                 ]
             );
 
@@ -106,7 +159,7 @@ class ProductosController extends Controller
             return response()->json(['result' => 1, 'msg' => 'Producto agregado con exito']);
 
         } catch (\Throwable $th) {
-            
+            return $th;
             return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
         }        
                 
