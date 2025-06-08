@@ -23,15 +23,11 @@ const toast = useToast();
 const visibleRight = ref(false);
 const showspinner = ref(true);
 const btndisabled = ref(false);
-const dataArea = ref([]);
-const dataProveedor = ref([]);
 const msgerrors = ref([]);
 
 const searcharea = ref(''); 
-const banderaarea = ref(false);
 
 const searchproveedor = ref('');
-const banderaproveedor = ref(false);
 
 const size = ref({ label: 'Small', value: 'small' });
 
@@ -85,9 +81,8 @@ const ClearFormEntrada = async () => {
     formsearch.search_noentrada = '';
     formsearch.search_fechacompra = '';
     formsearch.search_fechaentrada = '';
-    formsearch.search_area = '';  
-
-    await SearchEntradaTable();
+    formsearch.search_area = '';
+    entradas.value = [...props.Entradas];       
 
 }
 
@@ -124,38 +119,33 @@ const showError = (msg) => {
     toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 3000 });
 };
 
+const showInfo = () => {
+    toast.add({ severity: 'info', summary: 'Info Message', detail: '🔄 Cargando información para edición...', life: 3000});
+};
+
 const Edit = async (data) => {
-     
+    showInfo();
     let resp = await axios.get(route('edit.entrada', data.id));
-        console.log(resp);
-        if (resp.data.result == 0) {
-            showError(resp.data.msg);
-        } else {
-            
-            visibleRight.value = true;
-            form.id = resp.data.id;
-            form.no_orden = resp.data.no_orden;
-            searchproveedor.value = resp.data.proveedor;
-            form.proveedor = resp.data.id_proveedor;
-            form.fecha_compra = resp.data.fecha_compra;
-            form.fecha_entrada = resp.data.fecha_entrada;
-            form.area_solicitante = resp.data.area_solicitante;
-            form.numero_requisicion = resp.data.numero_requisicion;
-            form.cantidad_piezas = resp.data.cantidad_piezas;
-            form.precio_unitario = resp.data.precio_unitario;
-            form.IVA = resp.data.IVA;
-            form.precio_unitario = resp.data.precio_unitario;
-            form.total = resp.data.total;
-            searcharea.value = resp.data.area 
-
-            banderaarea.value = true;
-            banderaproveedor.value = true;
-
-            setTimeout( () => {
-                banderaarea.value = false;
-                banderaproveedor.value = false;
-            }, 100);
-        }    
+    if (resp.data.result == 0) {
+        showError(resp.data.msg);
+    } else {
+        
+        visibleRight.value = true;
+        form.id = resp.data.id;
+        form.no_orden = resp.data.no_orden;
+        searchproveedor.value = resp.data.proveedor;
+        form.proveedor = resp.data.id_proveedor;
+        form.fecha_compra = resp.data.fecha_compra;
+        form.fecha_entrada = resp.data.fecha_entrada;
+        form.area_solicitante = resp.data.area_solicitante;
+        form.numero_requisicion = resp.data.numero_requisicion;
+        form.cantidad_piezas = resp.data.cantidad_piezas;
+        form.precio_unitario = resp.data.precio_unitario;
+        form.IVA = resp.data.IVA;
+        form.precio_unitario = resp.data.precio_unitario;
+        form.total = resp.data.total;
+        searcharea.value = resp.data.area  
+    }
 }
 
 const Delete  = async (data) => {
@@ -175,84 +165,20 @@ const Delete  = async (data) => {
     }
 }
 
-const SearchArea = async (timeouarea) => {
-    if (timeouarea) {
-        try {
-            let resp = await axios.get(route('search.area', timeouarea));            
-            dataArea.value = resp.data;
-        } catch (error) {
-            dataArea.value = error.response.data;
-        }
-    } else {
-        dataArea.value = [];
-        form.area_solicitante = '';
-        banderaarea.value = false;
-    }    
-}
-
-const handleSelectionarea = (id, text) => {  
-    banderaarea.value = true;  
+const handleSelectionarea = (id) => {      
     form.area_solicitante = id;
-    searcharea.value = text;
-    dataArea.value = [];
-
-    setTimeout( () => {
-        banderaarea.value = false;
-    }, 100);
 };
 
-
-const SearchProveedor = async (text) => {
-    if (text) {
-        try {
-            let resp = await axios.get(route('search.proveedor', text));
-            dataProveedor.value = resp.data;
-        } catch (error) {
-            dataProveedor.value = error.response.data;
-        }
-    } else {
-        dataProveedor.value = [];
-        form.proveedor = '';
-        banderaproveedor.value = false;
-    }    
-}
-
-const handleSelectionproveedor = (id, text) => {
-    banderaproveedor.value = true;  
+const handleSelectionproveedor = (id) => {  
     form.proveedor = id;
-    searchproveedor.value = text;
-    dataProveedor.value = [];
-
-    setTimeout( () => {
-        banderaproveedor.value = false;
-    }, 100);
 }
-
-let timeouproveedor = null;
-watch(searchproveedor, (newvalue) => {
-    if (banderaproveedor.value) return false;
-    
-    clearTimeout(timeouproveedor);
-    timeouproveedor = setTimeout(() => {
-        SearchProveedor(newvalue)
-    }, 500);
-});
-
-let timeouarea = null;
-watch(searcharea, (newvalue) => {
-    if (banderaarea.value) return false;
-    
-    clearTimeout(timeouarea);
-    timeouarea = setTimeout(() => {
-        SearchArea(newvalue)
-    }, 500);
-});
 
 const ClearForm = () => {
     form.reset();
     msgerrors.value  = [];
-    visibleRight.value = true;
-    searcharea.value = '';
+    visibleRight.value = true;    
+    searcharea.value  = '';
+    searchproveedor.value = '';
 }
 
 </script>
@@ -376,14 +302,7 @@ const ClearForm = () => {
                     </div>
                     <div class="relative">
                         <InputLabel for="searchproveedor" value="Proveedor"/>
-                        <TextInput
-                            id="searchproveedor"
-                            type="search"
-                            class="w-full mt-1"
-                            placeholder="Buscar..."
-                            v-model="searchproveedor"
-                        />
-                        <SearchResult v-if="searchproveedor" :id="'searchproveedor'" :data="dataProveedor" :label="'id'" :text="'nombre'" @select="handleSelectionproveedor" />
+                        <SearchResult :url="'search.proveedor'" :id="'searchproveedor'" v-model="searchproveedor" :label="'id'" :text="'nombre'" @select="handleSelectionproveedor" />
                         <FieldError :message="msgerrors.proveedor" />
                     </div>
                     <div>
@@ -407,14 +326,7 @@ const ClearForm = () => {
                     </div>
                     <div class="relative">
                         <InputLabel for="searcharea" value="Area solicitante"/>
-                        <TextInput
-                            id="searcharea"
-                            type="search"
-                            class="w-full mt-1"
-                            placeholder="Buscar..."
-                            v-model="searcharea"
-                        />
-                        <SearchResult v-if="searcharea" :id="'searcharea'" :data="dataArea" :label="'id'" :text="'area'" @select="handleSelectionarea" />
+                        <SearchResult :url="'search.area'" :id="'searcharea'" v-model="searcharea" :label="'id'" :text="'area'" @select="handleSelectionarea" />
                         <FieldError :message="msgerrors.area_solicitante" />
                     </div>  
                     <TextInput

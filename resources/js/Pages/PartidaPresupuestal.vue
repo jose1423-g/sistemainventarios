@@ -64,8 +64,8 @@ const ClearFormPartidas = async () => {
 
     formsearch.search_nopartida = '';
     formsearch.search_nombre = '';    
-
-    await SearchPartidasTable();
+    
+    partidas.value = [...props.partida];
 }
 
 const submit = async () => {
@@ -96,11 +96,17 @@ const submit = async () => {
 const showSuccess = (msg) => {
     toast.add({ severity: 'success', summary: 'Success', detail: msg, life: 3000 });
 };
+
 const showError = (msg) => {
     toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 3000 });
 };
 
+const showInfo = () => {
+    toast.add({ severity: 'info', summary: 'Info Message', detail: '🔄 Cargando información para edición...', life: 3000});
+};
+
 const Edit  = async (data) =>{
+    showInfo();
     let resp = await axios.get(route('get.partida', data.id));
 
     if(resp.data.result == 0){

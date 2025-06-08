@@ -9,6 +9,7 @@ use App\Http\Controllers\UsuariosController;
 use App\Http\Controllers\ProductosController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\SearchTableController;
 use App\Http\Controllers\ProveedoresController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\DashboardController;
@@ -93,14 +94,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/searchdashboardsalidas/{name}', [SearchController::class, 'SearchSalidasEntradas'])->name('search.dashboard.salida');
 
     /* buscador de las tablas */
-    Route::post('/searchentradatable', [SearchController::class, 'SearchEntradasTable'])->name('search.entrada.table');
-    Route::post('/searchsalidatable', [SearchController::class, 'SearchSalidasTable'])->name('search.salida.table');
-    Route::post('/searchpartidatable', [SearchController::class, 'SearchPartidaTable'])->name('search.partida.table');
-    Route::post('/searchpersonaltable', [SearchController::class, 'SearchPersonalTable'])->name('search.personal.table');
-    Route::post('/searchusertable', [SearchController::class, 'SearchUsersTable'])->name('search.users.table');
-    Route::post('/searchareatable', [SearchController::class, 'SearchAreaTable'])->name('search.area.table');
-    Route::post('/searchproducttable', [SearchController::class, 'SearchProductTable'])->name('search.product.table');
-    Route::post('/searchproveedortable', [SearchController::class, 'SearchProveedorTable'])->name('search.proveedor.table');
+    Route::post('/searchentradatable', [SearchTableController::class, 'SearchEntradasTable'])->name('search.entrada.table');
+    Route::post('/searchsalidatable', [SearchTableController::class, 'SearchSalidasTable'])->name('search.salida.table');
+    Route::post('/searchpartidatable', [SearchTableController::class, 'SearchPartidaTable'])->name('search.partida.table');
+    Route::post('/searchpersonaltable', [SearchTableController::class, 'SearchPersonalTable'])->name('search.personal.table');
+    Route::post('/searchusertable', [SearchTableController::class, 'SearchUsersTable'])->name('search.users.table');
+    Route::post('/searchareatable', [SearchTableController::class, 'SearchAreaTable'])->name('search.area.table');
+    Route::post('/searchproducttable', [SearchTableController::class, 'SearchProductTable'])->name('search.product.table');
+    Route::post('/searchproveedortable', [SearchTableController::class, 'SearchProveedorTable'])->name('search.proveedor.table');
 
     /* para los pdf */
     Route::get('/pdf-entrada/{id}', [PdfController::class, 'ViewPdfEntrada'])->name('view.pdf.entrada');

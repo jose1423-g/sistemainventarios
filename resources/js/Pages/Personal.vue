@@ -73,7 +73,7 @@ const SearchPersonalTable = async () => {
 
 const ClearFormPersonal = async () => {
     formsearch.reset(); 
-    await SearchPersonalTable();
+    personal.value = [...props.Personal];
 }
 
 const submit = async () => {
@@ -109,8 +109,12 @@ const showError = (msg) => {
     toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 3000 });
 };
 
+const showInfo = () => {
+    toast.add({ severity: 'info', summary: 'Info Message', detail: '🔄 Cargando información para edición...', life: 3000});
+};
+
 const Edit = async (data) => {
-    
+    showInfo();
     let resp = await axios.get(route('edit.personal', data.id));
         if (resp.data.result == 0) {
             showError(resp.data.msg);
@@ -142,39 +146,8 @@ const Delete  = async (data) => {
     
 }
 
-const SearchArea = async (newarea) => {
-    if (newarea) {
-        try {
-            let resp = await axios.get(route('search.area', newarea));
-            dataArea.value = resp.data;
-        } catch (error) {
-            dataArea.value = error.response.data;
-        }        
-    } else {
-        dataArea.value = [];
-        form.area = '';
-    }    
-}
-
-let timeoutarea = null;
-watch(searcharea, (newvalue) => {
-    if (banderaarea.value) return false;
-
-    clearTimeout(timeoutarea);
-    timeoutarea = setTimeout(() => {
-        SearchArea(newvalue)
-    }, 500);
-});
-
-const handleSelection = (id, text) => { 
-    banderaarea.value = true;   
+const handleSelection = (id) => {     
     form.fk_area = id;
-    searcharea.value = text;
-    dataArea.value = [];
-
-    setTimeout( () => {
-        banderaarea.value = false;
-    }, 100);
 };
 
 const ClearForm = () => {
@@ -301,14 +274,15 @@ const ClearForm = () => {
                     </div>
                     <div class="relative">
                         <InputLabel for="searcharea" value="Area"/>
-                        <TextInput
+                        <!-- <TextInput
                             id="searcharea"
                             type="search"
                             placeholder="Buscar..."
                             class="w-full mt-1"
                             v-model="searcharea"
-                        />
-                        <SearchResult v-if="searcharea" :data="dataArea" :id="'searcharea'" :label="'id'" :text="'area'" @select="handleSelection"/>
+                        /> -->
+                        <!-- <SearchResult v-if="searcharea" :data="dataArea" :id="'searcharea'" :label="'id'" :text="'area'" @select="handleSelection"/> -->
+                        <SearchResult :url="'search.area'" :id="'searcharea'" v-model="searcharea" :label="'id'" :text="'area'" @select="handleSelection" />
                         <FieldError :message="msgerrors.fk_area" />
                     </div>                    
                     <TextInput

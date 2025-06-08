@@ -64,7 +64,7 @@ const SearchProveedorTable = async () => {
 
 const ClearFormProveedor = async () => {
     formsearch.reset(); 
-    await SearchProveedorTable();
+    proveedores.value = [...props.Proveedores];
 }
 
 const submit = async () => {
@@ -99,8 +99,12 @@ const showError = (msg) => {
     toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 3000 });
 };
 
+const showInfo = () => {
+    toast.add({ severity: 'info', summary: 'Info Message', detail: '🔄 Cargando información para edición...', life: 3000});
+};
+
 const Edit = async (data) => {
-     
+    showInfo();
     let resp = await axios.get(route('edit.proveedor', data.id));
     
         if (resp.data.result == 0) {

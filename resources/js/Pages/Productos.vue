@@ -32,19 +32,11 @@ const visibleRight = ref(false);
 const showspinner = ref(true);
 const btndisabled = ref(false);
 const msgerrors = ref([]);
-const dataEntrada = ref([]);
-const dataPartidas = ref([]);
-const dataProducto = ref([]);
 const url_img = ref(null);
 
 const searchproducto = ref('');
-const banderaproducto = ref(false);
-
 const searchpartida = ref('');
-const banderapatida = ref(false);
-
 const searchentrada = ref('');
-const banderaentrada = ref(false);
 
 const fileinput = ref(null);
 
@@ -85,7 +77,7 @@ const SearchProductTable = async () => {
 
 const ClearFormProduct = async () => {
     formsearch.reset();
-    await SearchProductTable();
+    productos.value = [...props.Productos];        
 }
 
 
@@ -144,38 +136,38 @@ const showError = (msg) => {
     toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 3000 });
 };
 
+const showInfo = () => {
+    toast.add({ severity: 'info', summary: 'Info Message', detail: '🔄 Cargando información para edición...', life: 3000});
+};
+
 const Edit = async (data) => {
-     
-    let resp = await axios.get(route('edit.producto', data.id));
-    if (resp.data.result == 0) {
-        showError(resp.data.msg);
-    } else {
-        visibleRight.value = true;        
-        form.id = resp.data.id;
-        form.fk_entrada = resp.data.fk_entrada;
-        form.nombre = resp.data.nombre;
-        form.fk_partida = resp.data.fk_partida;
-        form.descripcion = resp.data.descripcion;
-        form.stock = resp.data.stock;
-        form.unidad = resp.data.unidad;
-        form.precio = resp.data.precio;
-        form.img = resp.data.img;
-        url_img.value = resp.data.url_img;
+    try {
+        showInfo();
+        let resp = await axios.get(route('edit.producto', data.id));
+        if (resp.data.result == 0) {
+            showError(resp.data.msg);
+        } else {
+            visibleRight.value = true;        
+            form.id = resp.data.id;         
+            form.fk_entrada = resp.data.fk_entrada ?? ''; // solo valida los datos null y undefined
+            form.nombre = resp.data.nombre;            
+            form.fk_partida = resp.data.fk_partida ?? '';
+            form.descripcion = resp.data.descripcion;
+            form.stock = resp.data.stock;
+            form.unidad = resp.data.unidad;
+            form.precio = resp.data.precio;
+            form.img = resp.data.img;
+            url_img.value = resp.data.url_img;
 
-        searchentrada.value = resp.data.no_orden;
-        searchpartida.value = resp.data.no_partida;
-        searchproducto.value = resp.data.nombre;
-        
-        banderaentrada.value = true;
-        banderapatida.value = true;
-        banderaproducto.value = true;
-
-        setTimeout( () => {
-            banderaentrada.value = false;
-            banderapatida.value = false;
-            banderaproducto.value = false;
-        }, 100);
+            searchentrada.value = resp.data.no_orden;
+            searchpartida.value = resp.data.no_partida;
+            searchproducto.value = resp.data.nombre;
+        }
+    
+    } catch (error) {
+        showError(error.response.data.msg);
     }
+    
 }
 
 const Delete  = async (data) => {
@@ -192,122 +184,28 @@ const Delete  = async (data) => {
     }
 }
 
-const SearchEntrada = async (newentrada) => {    
-    if (newentrada) {
-        try {
-            let resp = await axios.get(route('search.entradas', newentrada));                        
-            dataEntrada.value = resp.data;
-        } catch (error) {
-            showError(resp.data.msg);
-        }
-    } else {
-        dataEntrada.value = [];
-        form.fk_entrada = '';
-        banderaentrada.value = false;
-    }    
-}
 
-const SearchProductos = async (newproduct) => {
-    if (newproduct) {
-        try {
-            let resp = await axios.get(route('search.productos', newproduct));                        
-            dataProducto.value = resp.data;
-        } catch (error) {
-            dataProducto.value = error.response.data;
-        }
-    } else {
-        dataProducto.value = [];
-        form.id = '';
-        banderaproducto.value = false;
-    }    
-}
-
-const SearchPartidas = async (searchpartida) => {
-    if (searchpartida) {
-        try {
-            let resp = await axios.get(route('search.partidas', searchpartida));
-            dataPartidas.value = resp.data;
-        } catch (error) {
-            dataPartidas.value = error.response.data;
-        }
-    } else {
-        dataPartidas.value = [];
-        form.fk_partida = '';
-        banderapatida.value = false;
-    }    
-}
-
-const handleSelectionEntrada = (id, text) => {
-    banderaentrada.value = true;
-    form.fk_entrada = id;
-    searchentrada.value = text;    
-    dataEntrada.value = [];
-
-    setTimeout( () => {
-        banderaentrada.value = false;
-    }, 100);
-        
+const handleSelectionEntrada = (id) => {
+    if (!id == '') {
+        form.fk_entrada = id;     
+    }
 };
 
 const handleSelectionProducto = (id, text) => {
-    banderaproducto.value = true;
     if (id === '') {
         form.id = ''
-        dataProducto.value = [];
         form.nombre = searchproducto.value;
     } else {
-        form.id = id;
-        searchproducto.value = text;
-        form.nombre = searchproducto.value;
-        dataProducto.value = [];
+        form.id = id; 
+        form.nombre = text;
     }
-
-    setTimeout( () => {
-        banderaproducto.value = false;
-    }, 100);
 };
 
-const handleSelectionPartida = (id, text) => {
-    banderapatida.value = true;
-    form.fk_partida = id;
-    searchpartida.value = text;
-    dataPartidas.value = [];
-
-    setTimeout( () => {
-        banderapatida.value = false;
-    }, 100);
+const handleSelectionPartida = (id) => {     
+    if (!id == '') {
+        form.fk_partida = id;
+    }
 };
-
-
-let timeoutproduct = null;
-watch(searchproducto, (newvalue) => {
-    if (banderaproducto.value) return false;
-    
-    clearTimeout(timeoutproduct);
-    timeoutproduct = setTimeout(() => {
-        SearchProductos(newvalue)
-    }, 500);
-});
-
-let timeoutentrada = null;
-watch(searchentrada, (newvalue) => {
-    if (banderaentrada.value) return false;
-
-    clearTimeout(timeoutentrada);
-    timeoutentrada = setTimeout(() => {
-        SearchEntrada(newvalue)
-    }, 500);
-});
-
-let timeoutpartidas = null;
-watch(searchpartida, (newvalue) => {
-    if (banderapatida.value) return false;
-    
-    clearTimeout(timeoutpartidas);
-    timeoutpartidas = setTimeout(() => {
-        SearchPartidas(newvalue)
-    }, 500);
-});
 
 const ClearForm = () => {
     form.reset();
@@ -414,14 +312,7 @@ const ClearForm = () => {
                     />
                     <div class="relative">
                         <InputLabel for="searchentrada" value="No° orden de compra"/>
-                        <TextInput
-                            id="searchentrada"
-                            type="search"
-                            placeholder="Buscar..."
-                            class="w-full mt-1"
-                            v-model="searchentrada"                                                        
-                        />                        
-                        <SearchResult v-if="searchentrada" :data="dataEntrada" :id="'searchentrada'" :label="'id'" :text="'no_orden'" @select="handleSelectionEntrada" />
+                        <SearchResult :url="'search.entradas'" :id="'searchentrada'" v-model="searchentrada" :label="'id'" :text="'no_orden'" @select="handleSelectionEntrada" />
                         <FieldError :message="msgerrors.fk_entrada" />
                     </div>
                     <TextInput
@@ -431,15 +322,8 @@ const ClearForm = () => {
                         v-model="form.fk_entrada"
                     />
                     <div class="relative">
-                        <InputLabel for="producto" value="Producto"/>
-                        <TextInput
-                            id="producto"
-                            type="search"
-                            placeholder="Buscar..."
-                            class="w-full mt-1"
-                            v-model="searchproducto"                            
-                        />                        
-                        <SearchResult v-if="searchproducto" :data="dataProducto" :id="'producto'" :label="'id'" :text="'nombre'" @select="handleSelectionProducto" />
+                        <InputLabel for="searchproducto" value="Producto"/>
+                        <SearchResult :url="'search.productos'" :id="'searchproducto'" v-model="searchproducto" :label="'id'" :text="'nombre'" @select="handleSelectionProducto" />
                         <FieldError :message="msgerrors.nombre" />
                     </div>
                     <div>
@@ -498,14 +382,7 @@ const ClearForm = () => {
 
                     <div class="relative">
                         <InputLabel for="searchpartida" value="No° partida"/>
-                        <TextInput
-                            id="searchpartida"
-                            type="search"
-                            placeholder="Buscar..."                            
-                            class="w-full mt-1"                            
-                            v-model="searchpartida"
-                        />
-                        <SearchResult v-if="searchpartida" :data="dataPartidas"  :id="'searchpartida'" :label="'id'" :text="'no_partida'" @select="handleSelectionPartida" />
+                        <SearchResult :url="'search.partidas'" :id="'searchpartida'" v-model="searchpartida" :label="'id'" :text="'no_partida'" @select="handleSelectionPartida" />
                         <FieldError :message="msgerrors.fk_partida" />
                     </div>
                     <TextInput

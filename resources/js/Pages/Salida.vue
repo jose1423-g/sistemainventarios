@@ -33,19 +33,13 @@ const props = defineProps({
 
 const msgerrors = ref([]);
 
-const dataProducto = ref([]);
 const searchproducto = ref('');
 const banderaproducto = ref(false);
 const Cantidad = ref('');
 const producto_id = ref(null); 
 
-const dataCompra = ref([]);
 const searchcompra = ref('');
-const banderacompra = ref(false);
-
-const dataArea = ref([]);
 const searcharea = ref('');
-const banderaarea = ref(false);
 
 const showspinner = ref(true);
 const btndisabled = ref(false);
@@ -100,9 +94,8 @@ const ClearFormSalida = async () => {
     formsearch.search_nosalida = '';
     formsearch.search_noentrada = '';
     formsearch.search_fechasalida = '';
-    formsearch.search_area = '';  
-
-    await SearchSalidaTable();
+    formsearch.search_area = '';
+    salidas.value = [...props.Salidas];
 }
 
 const submit = async () => {
@@ -149,6 +142,7 @@ const submit = async () => {
 }
 
 const Edit = async (data) => {
+    showInfo();
     let resp = await axios.get(route('edit.salida', data.id));
     if (resp.data.result == 0) {
         showError(resp.data.msg);
@@ -173,13 +167,6 @@ const Edit = async (data) => {
             };
             form.Productos.push(nuevoProducto);     
         });
-        
-        banderacompra.value = true;
-        banderaarea.value = true;
-        setTimeout( () => {                    
-            banderacompra.value = false;
-            banderaarea.value = false;
-        }, 100);
     }
 }
 
@@ -201,114 +188,18 @@ const Delete = async (data) => {
     }
 }
 
-const SearchArea = async (newarea) => {
-    if (newarea) {
-        try {
-            let resp = await axios.get(route('search.area', newarea));                        
-            dataArea.value = resp.data;
-        } catch (error) {
-            dataArea.value = error.response.data;
-        }
-    } else {
-        dataArea.value = [];
-        form.fk_area = '';
-        banderaarea.value = false;
-    }
-}
-
-let timeoutarea = null;
-watch(searcharea, (newvalue) => {
-    if (banderaarea.value) return false;
-    
-    clearTimeout(timeoutarea);
-    timeoutarea = setTimeout(() => {
-        SearchArea(newvalue)
-    }, 500);
-});
-
 const handleSelectionArea = (id, text, item) => {
-    banderaarea.value = true;
     form.fk_area = id;
-    form.personal = item.nombre;
-    searcharea.value = text;
-    dataArea.value = [];
-
-    setTimeout( () => {
-        banderaarea.value = false;
-    }, 100);
+    form.personal = item.nombre;         
 };
 
-const SearchCompra = async (newcompra) => {
-    if (newcompra) {
-        try {
-            let resp = await axios.get(route('search.entradas', newcompra));                        
-            dataCompra.value = resp.data;
-        } catch (error) {
-            dataCompra.value = error.response.data;
-        }
-    } else {
-        dataCompra.value = [];
-        form.fk_no_compra = '';
-        banderacompra.value = false;
-    }    
-}
-
-let timeoutcompra = null;
-watch(searchcompra, (newvalue) => {
-    if (banderacompra.value) return false;
-    
-    clearTimeout(timeoutcompra);
-    timeoutcompra = setTimeout(() => {
-        SearchCompra(newvalue)
-    }, 500);
-});
-
-const handleSelectionCompra = (id, text) => {
-    banderacompra.value = true;
+const handleSelectionCompra = (id) => {    
     form.fk_no_compra = id;
-    searchcompra.value = text;
-    dataCompra.value = []; 
-
-    setTimeout( () => {
-        banderacompra.value = false;
-    }, 100);
 };
 
-const SearchProductos = async (newproduct) => {
-    if (newproduct) {
-        try {
-            let resp = await axios.get(route('search.productos', newproduct));                        
-            dataProducto.value = resp.data;
-        } catch (error) {
-            dataProducto.value = error.response.data;
-        }
-    } else {
-        dataProducto.value = [];
-        form.id = '';
-        banderaproducto.value = false;
-    }    
-}
-
-const handleSelectionProducto = (id, text) => {
-    banderaproducto.value = true;
+const handleSelectionProducto = (id) => {
     producto_id.value = id;    
-    searchproducto.value = text;
-    dataProducto.value = [];
-
-    setTimeout( () => {
-        banderaproducto.value = false;
-    }, 100);
 };
-
-let timeoutproduct = null;
-watch(searchproducto, (newvalue) => {
-    if (banderaproducto.value) return false;
-    
-    clearTimeout(timeoutproduct);
-    timeoutproduct = setTimeout(() => {
-        SearchProductos(newvalue)
-    }, 500);
-});
 
 const Removeproduct = (index) => {
     form.Productos.splice(index, 1)
@@ -350,6 +241,7 @@ const addProduct = () => {
 
     
 }
+
 const indexEdit = ref(null);
 const EditProduct = (index) => {    
     let producto = form.Productos[index];
@@ -366,6 +258,10 @@ const showSuccess = (msg) => {
 
 const showError = (msg) => {
     toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 3000 });
+};
+
+const showInfo = () => {
+    toast.add({ severity: 'info', summary: 'Info Message', detail: '🔄 Cargando información para edición...', life: 3000});
 };
 
 
@@ -495,14 +391,7 @@ const showError = (msg) => {
                         />
                         <div class="relative">
                             <InputLabel for="searchcompra" value="No° orden de compra"/>
-                            <TextInput
-                                id="searchcompra"
-                                type="search"
-                                class="w-full mt-1"                            
-                                placeholder="Buscar..."
-                                v-model="searchcompra"
-                            />                            
-                            <SearchResult v-if="searchcompra" :id="'searchcompra'" :data="dataCompra" :label="'id'" :text="'no_orden'" @select="handleSelectionCompra" />
+                            <SearchResult :url="'search.entradas'" :id="'searchcompra'" v-model="searchcompra" :label="'id'" :text="'no_orden'" @select="handleSelectionCompra" />
                             <FieldError :message="msgerrors.fk_no_compra" />
                         </div>
                         <div>
@@ -528,14 +417,7 @@ const showError = (msg) => {
                         </div>                    
                         <div class="relative">
                             <InputLabel for="searcharea" value="Area"/>
-                            <TextInput
-                                id="searcharea"
-                                type="search"
-                                class="w-full mt-1"
-                                placeholder="Buscar..."
-                                v-model="searcharea"
-                            />
-                            <SearchResult v-if="searcharea" :id="'searcharea'" :data="dataArea" :label="'id'" :text="'area'" @select="handleSelectionArea" />
+                            <SearchResult :url="'search.area'" :id="'searcharea'" v-model="searcharea" :label="'id'" :text="'area'" @select="handleSelectionArea" />
                             <FieldError :message="msgerrors.fk_area" />
                         </div>                    
                         <div>
@@ -552,14 +434,7 @@ const showError = (msg) => {
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="relative">
                             <InputLabel for="searchproducto" value="Agregar productos"/>
-                            <TextInput
-                                id="searchproducto"
-                                type="search"
-                                class="w-full mt-1"                            
-                                placeholder="Buscar..."
-                                v-model="searchproducto"
-                            />                            
-                            <SearchResult v-if="searchproducto" :id="'searchproducto'" :data="dataProducto" :label="'id'" :text="'nombre'" @select="handleSelectionProducto" />                            
+                            <SearchResult :url="'search.productos'" :id="'searchproducto'" v-model="searchproducto" :label="'id'" :text="'nombre'" @select="handleSelectionProducto" />
                         </div>
                         <div class="flex items-end gap-1 justify-between">
                             <div class="flex-1">

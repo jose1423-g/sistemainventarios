@@ -39,7 +39,7 @@ class ProductosController extends Controller
     }
 
     public function Store (Request $request) {
-
+        
         $request->validate([
             'fk_entrada' => 'required',
             'fk_partida' => 'required',
@@ -159,8 +159,7 @@ class ProductosController extends Controller
             return response()->json(['result' => 1, 'msg' => 'Producto agregado con exito']);
 
         } catch (\Throwable $th) {
-            return $th;
-            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal']);
+            return response()->json(['result' => 0, 'msg' => 'Ups algo salio mal'], 422);
         }        
                 
     }

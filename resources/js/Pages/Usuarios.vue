@@ -36,12 +36,18 @@ const visibleRight = ref(false);
 const showspinner = ref(true);
 const btndisabled = ref(false);
 const msgerrors = ref ([]);
+// const visible = ref(false);
 
 const showSuccess = (msg) => {
     toast.add({ severity: 'success', summary: 'Success', detail: msg, life: 3000 });
 };
+
 const showError = (msg) => {
     toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 3000 });
+};
+
+const showInfo = () => {
+    toast.add({ severity: 'info', summary: 'Info Message', detail: '🔄 Cargando información para edición...', life: 3000});
 };
 
 const form = useForm({ 
@@ -76,7 +82,7 @@ const SearchUserTable = async () => {
 
 const ClearFormUser = async () => {
     formsearch.reset(); 
-    await SearchUserTable();
+    user.value = [...props.users];
 }
 
 const submit = async () => {
@@ -105,6 +111,7 @@ const submit = async () => {
 }
 
 const Edit = async (data) => {
+    showInfo();
     let resp = await axios.get(route('edit.usuario', data.id));
     if(resp.data.result == 0){
         showError(resp.data.msg);
@@ -230,7 +237,9 @@ const ClearForm = () => {
             </DataTable>
         </div>        
 
-    <Toast />
+        <!-- Mensaje  -->
+        <Toast @close="visible = false" />
+
         <Drawer v-model:visible="visibleRight" header="Roles de usuarios" position="right">
             <form @submit.prevent="submit">
                 <div class="grid grid-cols-1 gap-4">
